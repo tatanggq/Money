@@ -10,6 +10,29 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- PWA Dynamic Web App Manifest -->
+    <script>
+        const manifestData = {
+            "name": "AR's Manajemen Keuangan",
+            "short_name": "AR Keuangan",
+            "start_url": window.location.href,
+            "display": "standalone",
+            "background_color": "#f1f5f9",
+            "theme_color": "#4f46e5",
+            "icons": [
+                {
+                    "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+                    "sizes": "512x512",
+                    "type": "image/png"
+                }
+            ]
+        };
+        const stringManifest = JSON.stringify(manifestData);
+        const blob = new Blob([stringManifest], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(blob);
+        document.write('<link rel="manifest" href="' + manifestURL + '">');
+    </script>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-12" onclick="closeDropdownOnOutside(event)">
 
@@ -73,7 +96,7 @@
                 </button>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-                <!-- Tombol Install PWA -->
+                <!-- Tombol Install PWA Asli -->
                 <button id="installPwaBtn" onclick="installPWA()" class="hidden text-xs bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-3.5 py-2 rounded-xl transition flex items-center shadow-sm">
                     <i class="fa-solid fa-download mr-1.5"></i> Install Aplikasi
                 </button>
@@ -270,16 +293,15 @@
 
     <!-- Script Logika -->
     <script>
-        // Logika PWA Install Prompt
+        // Logika PWA Install Prompt Asli
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            // Tampilkan tombol install jika belum diinstall
             document.getElementById('installPwaBtn').classList.remove('hidden');
         });
 
-        // Cek jika sudah berjalan dalam mode standalone (sudah diinstall)
+        // Sembunyikan tombol install jika sudah berjalan dalam mode PWA Standalone
         if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
             document.getElementById('installPwaBtn').classList.add('hidden');
         }
@@ -287,7 +309,7 @@
         window.addEventListener('appinstalled', () => {
             document.getElementById('installPwaBtn').classList.add('hidden');
             deferredPrompt = null;
-            alert('Aplikasi berhasil diinstal di perangkat Anda!');
+            alert('Aplikasi PWA berhasil diinstal!');
         });
 
         function installPWA() {
@@ -300,11 +322,11 @@
                     deferredPrompt = null;
                 });
             } else {
-                alert('Aplikasi sudah terpasang atau browser Anda tidak mendukung instalasi otomatis langsung dari tombol ini. Gunakan menu titik tiga browser lalu pilih "Tambahkan ke Layar Utama".');
+                alert('PWA siap dipasang! Jika tombol tidak merespons, buka menu titik tiga (...) di sudut kanan atas browser Chrome Anda, lalu pilih "Install aplikasi" atau "Tambahkan ke Layar Utama".');
             }
         }
 
-        // --- SISTEM LOGIN & OTP WHATSAPP ---
+        // --- SISTEM LOGIN & PEMULIHAN DATA LAMA ---
         let currentPhone = localStorage.getItem('ar_active_phone') || '';
         let generatedOtp = '';
         let transactions = [];
@@ -325,7 +347,6 @@
                 alert('Masukkan nomor WhatsApp yang valid!');
                 return;
             }
-            // Generate OTP 4 digit mandiri
             generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
             document.getElementById('displayOtpCode').innerText = generatedOtp;
             
@@ -342,8 +363,19 @@
                 
                 document.getElementById('authModal').classList.add('hidden');
                 document.getElementById('userPhoneLabel').innerText = `+62 ${currentPhone}`;
+                
+                // MIGRASI DATA LAMA: Tarik data dari key lama 'ar_smart_v8_transactions' jika ada
+                const oldDataKey = 'ar_smart_v8_transactions';
+                const userKey = `ar_smart_v8_transactions_${currentPhone}`;
+                let oldData = localStorage.getItem(oldDataKey);
+                
+                if (oldData && !localStorage.getItem(userKey)) {
+                    localStorage.setItem(userKey, oldData);
+                    localStorage.removeItem(oldDataKey); // Bersihkan key lama agar tidak bentrok
+                }
+
                 loadUserData();
-                alert('Login berhasil! Data disinkronkan dengan nomor WhatsApp Anda.');
+                alert('Login berhasil! Data Anda berhasil dipulihkan dan disinkronkan.');
             } else {
                 alert('Kode OTP salah! Silakan cek kembali kode simulasi di atas.');
             }
@@ -366,10 +398,14 @@
             const storageKey = `ar_smart_v8_transactions_${currentPhone}`;
             let storedData = localStorage.getItem(storageKey);
             
+            // Cek juga cadangan data lama jika key spesifik nomor belum ada
+            if (!storedData) {
+                storedData = localStorage.getItem('ar_smart_v8_transactions');
+            }
+
             if (storedData) {
                 transactions = JSON.parse(storedData);
             } else {
-                // Data bawaan awal jika akun baru
                 transactions = [
                     { date: '2026-09-01', desc: 'Gaji Bulanan', amount: 2850000, category: 'Pemasukan Utama' },
                     { date: '2026-09-02', desc: 'Kontrakan', amount: 850000, category: 'Kebutuhan / Kos' },
