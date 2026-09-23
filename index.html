@@ -214,8 +214,10 @@
 
     <!-- Script Logika -->
     <script>
-        // Set default tanggal hari ini untuk input form
-        document.getElementById('date').valueAsDate = new Date();
+        // Set default tanggal hari ini untuk input form jika belum ada nilai
+        if (!document.getElementById('date').value) {
+            document.getElementById('date').valueAsDate = new Date();
+        }
 
         let transactions = JSON.parse(localStorage.getItem('ar_smart_v8_transactions')) || [
             { date: '2026-09-01', desc: 'Gaji Bulanan', amount: 2850000, category: 'Pemasukan Utama' },
@@ -603,8 +605,8 @@
         function exportToPDF() {
             let printWindow = window.open('', '', 'height=700,width=950');
             
-            // Urutkan dari tanggal terlama ke terbaru untuk rekening koran yang valid
-            let chronologicalTransactions = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+            // Urutkan dari tanggal terlama (atas) ke terbaru (bawah) seperti rekening koran asli
+            let chronologicalTransactions = [...transactions].sort((a, b) => new Date(a.date || '2026-01-01') - new Date(b.date || '2026-01-01'));
             let runningBalance = 0;
 
             let htmlContent = `
