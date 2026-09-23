@@ -120,8 +120,8 @@
                     <span id="idealEmergency" class="font-bold text-slate-700 text-sm">Rp 0</span>
                 </div>
                 <div class="bg-white p-3 rounded-xl border border-indigo-100">
-                    <span class="text-slate-400 block">Upgrade Skill (10%)</span>
-                    <span id="idealSkill" class="font-bold text-slate-700 text-sm">Rp 0</span>
+                    <span class="text-slate-400 block">Operasional (10%)</span>
+                    <span id="idealOperational" class="font-bold text-slate-700 text-sm">Rp 0</span>
                 </div>
             </div>
         </div>
@@ -136,7 +136,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Keterangan / Nama Transaksi</label>
-                        <input type="text" id="desc" required placeholder="Contoh: Gaji, Narik inDrive, Makan" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                        <input type="text" id="desc" required placeholder="Contoh: WiFi, Kuota, Ban Bocor, Narik inDrive" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Nominal (Rp)</label>
@@ -215,24 +215,23 @@
             { desc: 'Narik inDrive Sampingan', amount: 500000, category: 'Pemasukan Sampingan' },
             { desc: 'Cicilan / Utang', amount: 997500, category: 'Cicilan / Utang' },
             { desc: 'Makan Sehari-hari', amount: 900000, category: 'Makan' },
-            { desc: 'Bensin & Transport', amount: 382500, category: 'Transport' },
+            { desc: 'WiFi, Kuota & Operasional', amount: 382500, category: 'Operasional' },
             { desc: 'Tabungan Darurat', amount: 285000, category: 'Dana Darurat' }
         ];
 
         let expenseChartInstance = null;
         let barChartInstance = null;
 
-        // Peta Warna Universal yang Konsisten (Chart, Badge Riwayat, dan Indikator Custom Dropdown Form)
+        // Peta Warna Universal yang Konsisten
         const categoryStyles = {
             'Pemasukan Utama': { bg: 'bg-emerald-100', text: 'text-emerald-700', hex: '#10b981' },
             'Pemasukan Sampingan': { bg: 'bg-teal-100', text: 'text-teal-700', hex: '#14b8a6' },
             'Cicilan / Utang': { bg: 'bg-rose-100', text: 'text-rose-700', hex: '#f43f5e' },
             'Kebutuhan / Kos': { bg: 'bg-blue-100', text: 'text-blue-700', hex: '#3b82f6' },
             'Makan': { bg: 'bg-amber-100', text: 'text-amber-700', hex: '#f59e0b' },
-            'Transport': { bg: 'bg-emerald-100', text: 'text-emerald-700', hex: '#10b981' },
+            'Operasional': { bg: 'bg-indigo-100', text: 'text-indigo-700', hex: '#6366f1' },
             'Jajan / Keinginan': { bg: 'bg-purple-100', text: 'text-purple-700', hex: '#a855f7' },
-            'Dana Darurat': { bg: 'bg-teal-100', text: 'text-teal-700', hex: '#14b8a6' },
-            'Upgrade Skill': { bg: 'bg-indigo-100', text: 'text-indigo-700', hex: '#6366f1' }
+            'Dana Darurat': { bg: 'bg-teal-100', text: 'text-teal-700', hex: '#14b8a6' }
         };
 
         const categoriesList = [
@@ -241,10 +240,9 @@
             'Cicilan / Utang',
             'Kebutuhan / Kos',
             'Makan',
-            'Transport',
+            'Operasional',
             'Jajan / Keinginan',
-            'Dana Darurat',
-            'Upgrade Skill'
+            'Dana Darurat'
         ];
 
         function renderCustomDropdown() {
@@ -331,10 +329,9 @@
                 'Cicilan / Utang': 0,
                 'Kebutuhan / Kos': 0,
                 'Makan': 0,
-                'Transport': 0,
+                'Operasional': 0,
                 'Jajan / Keinginan': 0,
-                'Dana Darurat': 0,
-                'Upgrade Skill': 0
+                'Dana Darurat': 0
             };
 
             transactions.forEach((trx, index) => {
@@ -385,7 +382,7 @@
             document.getElementById('idealDebt').innerText = formatRupiah(totalIncome * 0.35);
             document.getElementById('idealLiving').innerText = formatRupiah(totalIncome * 0.45);
             document.getElementById('idealEmergency').innerText = formatRupiah(totalIncome * 0.10);
-            document.getElementById('idealSkill').innerText = formatRupiah(totalIncome * 0.10);
+            document.getElementById('idealOperational').innerText = formatRupiah(totalIncome * 0.10);
 
             let totalUtangAktif = catTotals['Cicilan / Utang'];
             let batasAmanUtang = totalIncome * 0.35;
