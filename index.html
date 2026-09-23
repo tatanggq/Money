@@ -25,7 +25,7 @@
             </div>
             <div class="flex space-x-2">
                 <button onclick="exportToPDF()" class="text-xs bg-emerald-600 hover:bg-emerald-700 px-3.5 py-2 rounded-xl transition font-medium flex items-center shadow-sm">
-                    <i class="fa-solid fa-file-pdf mr-1.5"></i> Unduh PDF
+                    <i class="fa-solid fa-file-pdf mr-1.5"></i> Unduh Rekening Koran
                 </button>
                 <button onclick="confirmResetData()" class="text-xs bg-indigo-700 hover:bg-indigo-800 px-3.5 py-2 rounded-xl transition font-medium flex items-center shadow-sm">
                     <i class="fa-solid fa-rotate-right mr-1.5"></i> Reset Data
@@ -133,10 +133,14 @@
             </h3>
             <form id="transactionForm" onsubmit="saveTransaction(event)" class="space-y-4">
                 <input type="hidden" id="editIndex" value="">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Tanggal</label>
+                        <input type="date" id="date" required class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                    </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Keterangan / Nama Transaksi</label>
-                        <input type="text" id="desc" required placeholder="Contoh: WiFi, Kuota, Ban Bocor, Narik inDrive" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                        <input type="text" id="desc" required placeholder="Contoh: WiFi, Kuota, Ban Bocor" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Nominal (Rp)</label>
@@ -210,19 +214,22 @@
 
     <!-- Script Logika -->
     <script>
+        // Set default tanggal hari ini untuk input form
+        document.getElementById('date').valueAsDate = new Date();
+
         let transactions = JSON.parse(localStorage.getItem('ar_smart_v8_transactions')) || [
-            { desc: 'Gaji Bulanan', amount: 2850000, category: 'Pemasukan Utama' },
-            { desc: 'Narik inDrive Sampingan', amount: 500000, category: 'Pemasukan Sampingan' },
-            { desc: 'Cicilan / Utang', amount: 997500, category: 'Cicilan / Utang' },
-            { desc: 'Makan Sehari-hari', amount: 900000, category: 'Makan' },
-            { desc: 'WiFi, Kuota & Operasional', amount: 382500, category: 'Operasional' },
-            { desc: 'Tabungan Darurat', amount: 285000, category: 'Dana Darurat' }
+            { date: '2026-09-01', desc: 'Gaji Bulanan', amount: 2850000, category: 'Pemasukan Utama' },
+            { date: '2026-09-02', desc: 'Kontrakan', amount: 850000, category: 'Kebutuhan / Kos' },
+            { date: '2026-09-03', desc: 'PDAM', amount: 115000, category: 'Kebutuhan / Kos' },
+            { date: '2026-09-04', desc: 'PLN', amount: 310000, category: 'Kebutuhan / Kos' },
+            { date: '2026-09-05', desc: 'Allo Paylater', amount: 233000, category: 'Cicilan / Utang' },
+            { date: '2026-09-06', desc: 'Utang', amount: 250000, category: 'Cicilan / Utang' },
+            { date: '2026-09-07', desc: 'WiFi', amount: 170500, category: 'Operasional' }
         ];
 
         let expenseChartInstance = null;
         let barChartInstance = null;
 
-        // Peta Warna Universal yang Konsisten
         const categoryStyles = {
             'Pemasukan Utama': { bg: 'bg-emerald-100', text: 'text-emerald-700', hex: '#10b981' },
             'Pemasukan Sampingan': { bg: 'bg-teal-100', text: 'text-teal-700', hex: '#14b8a6' },
@@ -310,6 +317,13 @@
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number);
         }
 
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const parts = dateString.split('-');
+            if (parts.length !== 3) return dateString;
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
         function updateUI() {
             const listEl = document.getElementById('transactionList');
             const netBalanceEl = document.getElementById('netBalance');
@@ -351,8 +365,11 @@
 
                 item.innerHTML = `
                     <div class="space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs text-slate-400 font-medium"><i class="fa-regular fa-calendar mr-1"></i> ${formatDate(trx.date)}</span>
+                            <span class="text-[10px] px-2.5 py-0.5 rounded-full font-semibold ${badgeColor}">${trx.category}</span>
+                        </div>
                         <p class="font-semibold text-slate-700">${trx.desc}</p>
-                        <span class="text-[10px] px-2.5 py-0.5 rounded-full font-semibold ${badgeColor}">${trx.category}</span>
                     </div>
                     <div class="flex items-center space-x-3">
                         <span class="font-bold ${(trx.category.includes('Pemasukan')) ? 'text-emerald-600' : 'text-slate-700'}">
@@ -519,25 +536,28 @@
 
         function saveTransaction(e) {
             e.preventDefault();
+            const date = document.getElementById('date').value;
             const desc = document.getElementById('desc').value;
             const amount = parseFloat(document.getElementById('amount').value);
             const category = document.getElementById('category').value;
             const editIndex = document.getElementById('editIndex').value;
 
             if (editIndex === "") {
-                transactions.unshift({ desc, amount, category });
+                transactions.unshift({ date, desc, amount, category });
             } else {
-                transactions[parseInt(editIndex)] = { desc, amount, category };
+                transactions[parseInt(editIndex)] = { date, desc, amount, category };
                 cancelEdit();
             }
 
             document.getElementById('transactionForm').reset();
+            document.getElementById('date').valueAsDate = new Date();
             selectCategory('Pemasukan Utama');
             updateUI();
         }
 
         function editTransaction(index) {
             const trx = transactions[index];
+            document.getElementById('date').value = trx.date || new Date().toISOString().split('T')[0];
             document.getElementById('desc').value = trx.desc;
             document.getElementById('amount').value = trx.amount;
             selectCategory(trx.category);
@@ -551,6 +571,7 @@
 
         function cancelEdit() {
             document.getElementById('transactionForm').reset();
+            document.getElementById('date').valueAsDate = new Date();
             selectCategory('Pemasukan Utama');
             document.getElementById('editIndex').value = "";
             document.getElementById('formTitle').innerHTML = `<i class="fa-solid fa-circle-plus text-indigo-600 mr-2 text-base"></i> Tambah Transaksi Baru`;
@@ -580,10 +601,10 @@
         }
 
         function exportToPDF() {
-            let printWindow = window.open('', '', 'height=700,width=900');
+            let printWindow = window.open('', '', 'height=700,width=950');
             
-            // Membalik urutan data (yang terlama di atas, yang terbaru di bawah seperti rekening koran)
-            let chronologicalTransactions = [...transactions].reverse();
+            // Urutkan dari tanggal terlama ke terbaru untuk rekening koran yang valid
+            let chronologicalTransactions = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
             let runningBalance = 0;
 
             let htmlContent = `
@@ -610,18 +631,19 @@
                         <thead>
                             <tr>
                                 <th style="width: 4%;">No</th>
+                                <th style="width: 14%;">Tanggal</th>
                                 <th style="width: 32%;">Keterangan / Transaksi</th>
-                                <th style="width: 16%;">Kategori</th>
-                                <th class="text-right" style="width: 16%;">Debet (+)</th>
-                                <th class="text-right" style="width: 16%;">Kredit (-)</th>
-                                <th class="text-right" style="width: 16%;">Saldo Akhir</th>
+                                <th style="width: 14%;">Kategori</th>
+                                <th class="text-right" style="width: 12%;">Debet (+)</th>
+                                <th class="text-right" style="width: 12%;">Kredit (-)</th>
+                                <th class="text-right" style="width: 12%;">Saldo Akhir</th>
                             </tr>
                         </thead>
                         <tbody>
             `;
 
             if (chronologicalTransactions.length === 0) {
-                htmlContent += `<tr><td colspan="6" class="text-center" style="padding: 20px; color: #888;">Belum ada transaksi tercatat.</td></tr>`;
+                htmlContent += `<tr><td colspan="7" class="text-center" style="padding: 20px; color: #888;">Belum ada transaksi tercatat.</td></tr>`;
             } else {
                 chronologicalTransactions.forEach((t, i) => {
                     let isIncome = t.category.includes('Pemasukan');
@@ -639,6 +661,7 @@
                     htmlContent += `
                         <tr>
                             <td class="text-center">${i + 1}</td>
+                            <td class="text-center">${formatDate(t.date)}</td>
                             <td>${t.desc}</td>
                             <td>${t.category}</td>
                             <td class="text-right text-green">${isIncome ? debetStr : '-'}</td>
