@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR's Manajemen Keuangan - Smart Budgeting & Side Hustle</title>
+    <title>AR's Manajemen Keuangan</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome -->
@@ -21,7 +21,7 @@
                     <span class="bg-emerald-400 text-slate-900 font-bold px-2 py-0.5 rounded text-xs">AR</span>
                     <h1 class="text-lg font-bold tracking-wide">AR's Manajemen Keuangan</h1>
                 </div>
-                <p class="text-xs text-indigo-200 mt-0.5">Anti Boncos & Smart Budgeting Tool</p>
+                <p class="text-xs text-indigo-200 mt-0.5">Anti Boncos & Smart Budgeting</p>
             </div>
             <button onclick="resetData()" class="text-xs bg-indigo-700 hover:bg-indigo-800 px-3.5 py-2 rounded-xl transition font-medium flex items-center shadow-sm">
                 <i class="fa-solid fa-rotate-right mr-1.5"></i> Reset Data
@@ -56,7 +56,7 @@
         <!-- Baris Atas: Grafik & Ringkasan -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            <!-- Kotak 1: Alokasi Pengeluaran (Donut Chart dengan Persentase Potongan Pizza) -->
+            <!-- Kotak 1: Alokasi Pengeluaran-->
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
                 <div>
                     <h3 class="font-bold text-slate-700 text-sm mb-1">Alokasi Anggaran (Potongan Pizza)</h3>
@@ -195,8 +195,8 @@
     <script>
         let transactions = JSON.parse(localStorage.getItem('ar_smart_v4_transactions')) || [
             { desc: 'Gaji Bulanan', amount: 2850000, category: 'Pemasukan' },
-            { desc: 'Cicilan Motor / Utang', amount: 997500, category: 'Cicilan / Utang' },
-            { desc: 'Makan Sehari-hari', amount: 900000, category: 'Makan' },
+            { desc: 'Cicilan / Utang', amount: 997500, category: 'Cicilan / Utang' },
+            { desc: 'Makan Sehari-hari', amount: 900000, category: 'Makan & Jajan' },
             { desc: 'Bensin & Transport', amount: 382500, category: 'Transport' },
             { desc: 'Tabungan Darurat', amount: 285000, category: 'Dana Darurat' },
             { desc: 'Upgrade Skill', amount: 285000, category: 'Upgrade Skill' }
