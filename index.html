@@ -13,22 +13,78 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-12" onclick="closeDropdownOnOutside(event)">
 
+    <!-- Modal Login / Otentikasi WhatsApp & OTP -->
+    <div id="authModal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white max-w-sm w-full p-6 rounded-3xl shadow-2xl space-y-5 border border-slate-100">
+            <div class="text-center space-y-1">
+                <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl mx-auto flex items-center justify-center text-xl font-bold mb-2">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h3 class="font-bold text-slate-800 text-base">Login Keuangan AR</h3>
+                <p class="text-xs text-slate-500">Masukkan nomor WhatsApp Anda untuk sinkronisasi data antar perangkat.</p>
+            </div>
+
+            <!-- Langkah 1: Input Nomor HP -->
+            <div id="stepPhone" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Nomor WhatsApp</label>
+                    <div class="flex">
+                        <span class="inline-flex items-center px-3.5 rounded-l-xl border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-sm font-medium">+62</span>
+                        <input type="tel" id="inputPhone" placeholder="81234567890" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-r-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                    </div>
+                </div>
+                <button type="button" onclick="sendOTP()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl text-sm transition shadow-sm">
+                    Kirim Kode OTP Mandiri
+                </button>
+            </div>
+
+            <!-- Langkah 2: Input OTP -->
+            <div id="stepOtp" class="hidden space-y-4">
+                <div class="bg-indigo-50 p-3 rounded-xl text-center">
+                    <p class="text-xs text-indigo-700 font-medium">Kode OTP simulasi Anda:</p>
+                    <p id="displayOtpCode" class="text-xl font-extrabold text-indigo-800 tracking-widest mt-1">----</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Masukkan 4 Digit Kode OTP</label>
+                    <input type="text" id="inputOtp" maxlength="4" placeholder="0000" class="w-full px-3.5 py-2.5 text-center text-lg font-bold tracking-widest border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                </div>
+                <div class="flex space-x-2">
+                    <button type="button" onclick="verifyOTP()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl text-sm transition shadow-sm">
+                        Verifikasi & Masuk
+                    </button>
+                    <button type="button" onclick="resetAuthStep()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold px-4 py-3 rounded-xl transition">
+                        Ubah No
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Header -->
     <header class="bg-indigo-600 text-white shadow-md">
-        <div class="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div>
+        <div class="max-w-4xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center justify-between w-full sm:w-auto">
                 <div class="flex items-center space-x-2">
                     <span class="bg-emerald-400 text-slate-900 font-bold px-2 py-0.5 rounded text-xs">AR</span>
                     <h1 class="text-lg font-bold tracking-wide">AR's Manajemen Keuangan</h1>
                 </div>
-                <p class="text-xs text-indigo-200 mt-0.5">Anti Boncos & Smart Budgeting Tool</p>
+                <button onclick="logout()" class="sm:hidden text-xs bg-indigo-700 px-3 py-1.5 rounded-lg text-indigo-100" title="Ganti Akun">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
             </div>
-            <div class="flex space-x-2">
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- Tombol Install PWA -->
+                <button id="installPwaBtn" onclick="installPWA()" class="hidden text-xs bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-3.5 py-2 rounded-xl transition flex items-center shadow-sm">
+                    <i class="fa-solid fa-download mr-1.5"></i> Install Aplikasi
+                </button>
                 <button onclick="exportToPDF()" class="text-xs bg-emerald-600 hover:bg-emerald-700 px-3.5 py-2 rounded-xl transition font-medium flex items-center shadow-sm">
                     <i class="fa-solid fa-file-pdf mr-1.5"></i> Unduh Rekening Koran
                 </button>
                 <button onclick="confirmResetData()" class="text-xs bg-indigo-700 hover:bg-indigo-800 px-3.5 py-2 rounded-xl transition font-medium flex items-center shadow-sm">
                     <i class="fa-solid fa-rotate-right mr-1.5"></i> Reset Data
+                </button>
+                <button onclick="logout()" class="hidden sm:flex text-xs bg-indigo-700 hover:bg-indigo-800 px-3.5 py-2 rounded-xl transition font-medium items-center shadow-sm" title="Keluar / Ganti Nomor">
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i> <span id="userPhoneLabel">Akun</span>
                 </button>
             </div>
         </div>
@@ -214,19 +270,133 @@
 
     <!-- Script Logika -->
     <script>
+        // Logika PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Tampilkan tombol install jika belum diinstall
+            document.getElementById('installPwaBtn').classList.remove('hidden');
+        });
+
+        // Cek jika sudah berjalan dalam mode standalone (sudah diinstall)
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+            document.getElementById('installPwaBtn').classList.add('hidden');
+        }
+
+        window.addEventListener('appinstalled', () => {
+            document.getElementById('installPwaBtn').classList.add('hidden');
+            deferredPrompt = null;
+            alert('Aplikasi berhasil diinstal di perangkat Anda!');
+        });
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        document.getElementById('installPwaBtn').classList.add('hidden');
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                alert('Aplikasi sudah terpasang atau browser Anda tidak mendukung instalasi otomatis langsung dari tombol ini. Gunakan menu titik tiga browser lalu pilih "Tambahkan ke Layar Utama".');
+            }
+        }
+
+        // --- SISTEM LOGIN & OTP WHATSAPP ---
+        let currentPhone = localStorage.getItem('ar_active_phone') || '';
+        let generatedOtp = '';
+        let transactions = [];
+
+        function checkAuth() {
+            if (!currentPhone) {
+                document.getElementById('authModal').classList.remove('hidden');
+            } else {
+                document.getElementById('authModal').classList.add('hidden');
+                document.getElementById('userPhoneLabel').innerText = `+62 ${currentPhone}`;
+                loadUserData();
+            }
+        }
+
+        function sendOTP() {
+            const phoneInput = document.getElementById('inputPhone').value.trim();
+            if (phoneInput.length < 9) {
+                alert('Masukkan nomor WhatsApp yang valid!');
+                return;
+            }
+            // Generate OTP 4 digit mandiri
+            generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+            document.getElementById('displayOtpCode').innerText = generatedOtp;
+            
+            document.getElementById('stepPhone').classList.add('hidden');
+            document.getElementById('stepOtp').classList.remove('hidden');
+        }
+
+        function verifyOTP() {
+            const enteredOtp = document.getElementById('inputOtp').value.trim();
+            if (enteredOtp === generatedOtp) {
+                const phoneInput = document.getElementById('inputPhone').value.trim();
+                currentPhone = phoneInput;
+                localStorage.setItem('ar_active_phone', currentPhone);
+                
+                document.getElementById('authModal').classList.add('hidden');
+                document.getElementById('userPhoneLabel').innerText = `+62 ${currentPhone}`;
+                loadUserData();
+                alert('Login berhasil! Data disinkronkan dengan nomor WhatsApp Anda.');
+            } else {
+                alert('Kode OTP salah! Silakan cek kembali kode simulasi di atas.');
+            }
+        }
+
+        function resetAuthStep() {
+            document.getElementById('stepOtp').classList.add('hidden');
+            document.getElementById('stepPhone').classList.remove('hidden');
+            document.getElementById('inputOtp').value = '';
+        }
+
+        function logout() {
+            if (confirm('Keluar dari akun ini?')) {
+                localStorage.removeItem('ar_active_phone');
+                location.reload();
+            }
+        }
+
+        function loadUserData() {
+            const storageKey = `ar_smart_v8_transactions_${currentPhone}`;
+            let storedData = localStorage.getItem(storageKey);
+            
+            if (storedData) {
+                transactions = JSON.parse(storedData);
+            } else {
+                // Data bawaan awal jika akun baru
+                transactions = [
+                    { date: '2026-09-01', desc: 'Gaji Bulanan', amount: 2850000, category: 'Pemasukan Utama' },
+                    { date: '2026-09-02', desc: 'Kontrakan', amount: 850000, category: 'Kebutuhan / Kos' },
+                    { date: '2026-09-03', desc: 'PDAM', amount: 115000, category: 'Kebutuhan / Kos' },
+                    { date: '2026-09-04', desc: 'PLN', amount: 310000, category: 'Kebutuhan / Kos' },
+                    { date: '2026-09-05', desc: 'Allo Paylater', amount: 233000, category: 'Cicilan / Utang' },
+                    { date: '2026-09-06', desc: 'Utang', amount: 250000, category: 'Cicilan / Utang' },
+                    { date: '2026-09-07', desc: 'WiFi', amount: 170500, category: 'Operasional' }
+                ];
+                saveUserData();
+            }
+            updateUI();
+        }
+
+        function saveUserData() {
+            if (currentPhone) {
+                const storageKey = `ar_smart_v8_transactions_${currentPhone}`;
+                localStorage.setItem(storageKey, JSON.stringify(transactions));
+            }
+        }
+
+        // Jalankan pengecekan auth saat halaman dimuat
+        checkAuth();
+
         if (!document.getElementById('date').value) {
             document.getElementById('date').valueAsDate = new Date();
         }
-
-        let transactions = JSON.parse(localStorage.getItem('ar_smart_v8_transactions')) || [
-            { date: '2026-09-01', desc: 'Gaji Bulanan', amount: 2850000, category: 'Pemasukan Utama' },
-            { date: '2026-09-02', desc: 'Kontrakan', amount: 850000, category: 'Kebutuhan / Kos' },
-            { date: '2026-09-03', desc: 'PDAM', amount: 115000, category: 'Kebutuhan / Kos' },
-            { date: '2026-09-04', desc: 'PLN', amount: 310000, category: 'Kebutuhan / Kos' },
-            { date: '2026-09-05', desc: 'Allo Paylater', amount: 233000, category: 'Cicilan / Utang' },
-            { date: '2026-09-06', desc: 'Utang', amount: 250000, category: 'Cicilan / Utang' },
-            { date: '2026-09-07', desc: 'WiFi', amount: 170500, category: 'Operasional' }
-        ];
 
         let expenseChartInstance = null;
         let barChartInstance = null;
@@ -439,7 +609,7 @@
                 statusMsgEl.className = "text-xs mt-3 bg-white/20 px-2.5 py-1 rounded-lg inline-block font-medium";
             }
 
-            localStorage.setItem('ar_smart_v8_transactions', JSON.stringify(transactions));
+            saveUserData();
             updateCharts(catTotals, totalIncome, totalExpense);
         }
 
@@ -588,7 +758,7 @@
         }
 
         function confirmResetData() {
-            let step1 = confirm("⚠️ PERINGATAN: Anda akan menghapus seluruh data catatan keuangan Anda. Yakin ingin melanjutkan?");
+            let step1 = confirm("⚠️ PERINGATAN: Anda akan menghapus seluruh data catatan keuangan akun ini. Yakin ingin melanjutkan?");
             if (step1) {
                 let code = prompt("Ketik kata 'RESET' untuk mengonfirmasi penghapusan seluruh data:");
                 if (code === "RESET") {
@@ -604,50 +774,26 @@
         function exportToPDF() {
             let printWindow = window.open('', '', 'height=700,width=950');
             
-            // Fungsi pembantu untuk memberikan bobot waktu kronologis harian secara akurat
-            // Agar Sarapan/Pagi selalu di atas Naspad (Siang/Sore) pada tanggal yang sama.
             function getTimeWeight(trx) {
                 let descLower = trx.desc.toLowerCase();
                 let cat = trx.category;
-
-                // 1. Pemasukan (Gaji) selalu di urutan pertama (pagi buta)
                 if (cat.includes('Pemasukan')) return 1;
-
-                // 2. Sarapan / Kopi / Pagi
                 if (descLower.includes('sarapan') || descLower.includes('kopi') || descLower.includes('pagi') || descLower.includes('teh')) return 2;
-
-                // 3. Bekal / Transport pagi
                 if (descLower.includes('bekal')) return 3;
-
-                // 4. Makan Siang / Naspad / Umum lainnya
                 if (descLower.includes('naspad') || descLower.includes('makan siang') || cat === 'Makan') return 4;
-
-                // 5. Kebutuhan / Kos / Tagihan siang
                 if (cat === 'Kebutuhan / Kos') return 5;
-
-                // 6. Operasional / Bensin / WiFii
                 if (cat === 'Operasional') return 6;
-
-                // 7. Belanja Sore / Borma / Keinginan
                 if (descLower.includes('borma') || cat === 'Jajan / Keinginan') return 7;
-
-                // 8. Cicilan / Utang / Malam
                 if (cat === 'Cicilan / Utang' || descLower.includes('utang') || descLower.includes('paylater')) return 8;
-
-                // Default urutan tengah
                 return 5;
             }
 
             let chronologicalTransactions = [...transactions].sort((a, b) => {
                 let dateA = new Date(a.date || '2026-01-01');
                 let dateB = new Date(b.date || '2026-01-01');
-                
-                // Jika tanggal berbeda, urutkan murni berdasarkan tanggal terlama ke terbaru
                 if (dateA - dateB !== 0) {
                     return dateA - dateB;
                 }
-
-                // Jika tanggal SAMA, urutkan berdasarkan bobot waktu harian (Sarapan -> Naspad -> Belanja -> Cicilan)
                 return getTimeWeight(a) - getTimeWeight(b);
             });
 
@@ -672,7 +818,7 @@
                 </head>
                 <body>
                     <h2>AR's Manajemen Keuangan - Rekening Koran</h2>
-                    <p class="subtitle">Dicetak pada: ${new Date().toLocaleDateString('id-ID', { dateStyle: 'full' })}</p>
+                    <p class="subtitle">Nomor Akun: +62 ${currentPhone} | Dicetak pada: ${new Date().toLocaleDateString('id-ID', { dateStyle: 'full' })}</p>
                     <table>
                         <thead>
                             <tr>
@@ -740,7 +886,6 @@
         }
 
         renderCustomDropdown();
-        updateUI();
     </script>
 </body>
 </html>
