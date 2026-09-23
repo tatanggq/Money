@@ -31,20 +31,20 @@
 
     <main class="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
 
-        <!-- Panel Peringatan & Target Side Hustle -->
+        <!-- Panel Peringatan & Target Side Hustle Dinamis -->
         <div id="warningPanel" class="hidden bg-rose-50 border border-rose-200 p-5 rounded-2xl shadow-sm space-y-3">
             <div class="flex items-start space-x-3">
                 <div class="bg-rose-500 text-white p-2 rounded-xl mt-0.5">
                     <i class="fa-solid fa-triangle-exclamation text-lg"></i>
                 </div>
                 <div>
-                    <h3 class="font-bold text-rose-800 text-sm">Peringatan Keuangan (Boncos Detected!)</h3>
-                    <p id="warningText" class="text-xs text-rose-600 mt-0.5">Pengeluaran atau cicilan Anda melampaui batas aman rumus finansial.</p>
+                    <h3 class="font-bold text-rose-800 text-sm">Peringatan Keuangan (Struktur Belum Sehat!)</h3>
+                    <p id="warningText" class="text-xs text-rose-600 mt-0.5">Porsi cicilan/utang melampaui batas aman 35% atau pengeluaran melebihi pemasukan.</p>
                 </div>
             </div>
             <div class="bg-white p-4 rounded-xl border border-rose-100 flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div>
-                    <p class="text-xs font-semibold text-slate-700">Target Tambahan Pendapatan (Side Hustle) yang Dibutuhkan:</p>
+                    <p class="text-xs font-semibold text-slate-700">Target Tambahan Pendapatan (Side Hustle) yang Harus Dikejar:</p>
                     <p id="sideHustleTarget" class="text-lg font-extrabold text-rose-600 mt-0.5">Rp 0</p>
                 </div>
                 <button onclick="openSideHustleTips()" class="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-sm flex items-center justify-center">
@@ -95,7 +95,7 @@
             </div>
         </div>
 
-        <!-- Panduan Alokasi Ideal Berdasarkan Gaji/Total Pemasukan -->
+        <!-- Panduan Alokasi Ideal Berdasarkan Total Pemasukan -->
         <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-2xl">
             <h3 class="font-bold text-indigo-900 text-sm mb-2 flex items-center">
                 <i class="fa-solid fa-lightbulb text-indigo-600 mr-2"></i> Standar Alokasi Ideal (Berdasarkan Total Pemasukan)
@@ -133,7 +133,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Nominal (Rp)</label>
-                        <input type="number" id="amount" required placeholder="100000" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                        <input type="number" id="amount" required placeholder="50000" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Kategori Transaksi</label>
@@ -179,12 +179,12 @@
                 <button onclick="closeSideHustleModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <p class="text-xs text-slate-600 leading-relaxed">
-                Karena pengeluaran atau cicilan Anda melebihi batas aman, disarankan mencari tambahan pemasukan segera untuk menambal defisit tersebut:
+                Target tambahan pendapatan dihitung dari seberapa besar porsi cicilan atau pengeluaran Anda melampaui standar sehat:
             </p>
             <ul class="text-xs text-slate-700 space-y-2 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
                 <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Ambil orderan ride-hailing tambahan di jam sibuk (peak hours).</li>
-                <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Gunakan alokasi skill untuk belajar hal baru yang bernilai tinggi.</li>
-                <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Pangkas jajan dan keinginan sementara waktu hingga cicilan terkendali.</li>
+                <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Setiap tambahan pemasukan sampingan akan otomatis mengurangi target defisit ini.</li>
+                <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Jika saldo terpakai belanja harian, target kekurangan akan otomatis naik lagi.</li>
             </ul>
             <button onclick="closeSideHustleModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2.5 rounded-xl transition">
                 Siap, Paham!
@@ -194,14 +194,13 @@
 
     <!-- Script Logika -->
     <script>
-        let transactions = JSON.parse(localStorage.getItem('ar_smart_v5_transactions')) || [
+        let transactions = JSON.parse(localStorage.getItem('ar_smart_v6_transactions')) || [
             { desc: 'Gaji Bulanan', amount: 2850000, category: 'Pemasukan Utama' },
             { desc: 'Narik inDrive Sampingan', amount: 500000, category: 'Pemasukan Sampingan' },
             { desc: 'Cicilan Motor / Utang', amount: 997500, category: 'Cicilan / Utang' },
             { desc: 'Makan Sehari-hari', amount: 900000, category: 'Makan' },
             { desc: 'Bensin & Transport', amount: 382500, category: 'Transport' },
-            { desc: 'Tabungan Darurat', amount: 285000, category: 'Dana Darurat' },
-            { desc: 'Upgrade Skill', amount: 285000, category: 'Upgrade Skill' }
+            { desc: 'Tabungan Darurat', amount: 285000, category: 'Dana Darurat' }
         ];
 
         let expenseChartInstance = null;
@@ -251,7 +250,8 @@
             const sideHustleTarget = document.getElementById('sideHustleTarget');
 
             listEl.innerHTML = '';
-            let income = 0;
+            let income Utama = 0;
+            let incomeSampingan = 0;
             let catTotals = {
                 'Cicilan / Utang': 0,
                 'Kebutuhan / Kos': 0,
@@ -263,8 +263,10 @@
             };
 
             transactions.forEach((trx, index) => {
-                if (trx.category === 'Pemasukan Utama' || trx.category === 'Pemasukan Sampingan') {
-                    income += trx.amount;
+                if (trx.category === 'Pemasukan Utama') {
+                    incomeUtama += trx.amount;
+                } else if (trx.category === 'Pemasukan Sampingan') {
+                    incomeSampingan += trx.amount;
                 } else if (catTotals.hasOwnProperty(trx.category)) {
                     catTotals[trx.category] += trx.amount;
                 }
@@ -296,36 +298,42 @@
                 listEl.appendChild(item);
             });
 
+            let totalIncome = incomeUtama + incomeSampingan;
             let totalExpense = Object.values(catTotals).reduce((a, b) => a + b, 0);
-            let net = income - totalExpense;
+            let net = totalIncome - totalExpense;
 
             netBalanceEl.innerText = formatRupiah(net);
             chartTotalExpenseEl.innerText = formatRupiah(totalExpense);
             countEl.innerText = `${transactions.length} item`;
 
-            // Sinkronisasi otomatis Standar Alokasi berdasarkan total Pemasukan (Utama + Sampingan)
-            document.getElementById('idealDebt').innerText = formatRupiah(income * 0.35);
-            document.getElementById('idealLiving').innerText = formatRupiah(income * 0.45);
-            document.getElementById('idealEmergency').innerText = formatRupiah(income * 0.10);
-            document.getElementById('idealSkill').innerText = formatRupiah(income * 0.10);
+            // Standar Alokasi Ideal Berdasarkan Total Pemasukan
+            document.getElementById('idealDebt').innerText = formatRupiah(totalIncome * 0.35);
+            document.getElementById('idealLiving').innerText = formatRupiah(totalIncome * 0.45);
+            document.getElementById('idealEmergency').innerText = formatRupiah(totalIncome * 0.10);
+            document.getElementById('idealSkill').innerText = formatRupiah(totalIncome * 0.10);
 
-            // Deteksi Warning & Kalkulasi Target Side Hustle Otomatis
+            // Perhitungan Target Side Hustle Dinamis (Berdasarkan Defisit Saldo + Kelebihan Porsi Utang dari 35%)
             let totalUtangAktif = catTotals['Cicilan / Utang'];
-            let batasAmanUtang = income * 0.35;
+            let batasAmanUtang = totalIncome * 0.35;
             
-            if (net < 0 || totalUtangAktif > batasAmanUtang) {
+            // Defisit murni (jika pengeluaran melebihi total pemasukan)
+            let defisitKas = net < 0 ? Math.abs(net) : 0;
+            // Kelebihan beban utang di atas 35%
+            let kelebihanUtang = totalUtangAktif > batasAmanUtang ? (totalUtangAktif - batasAmanUtang) : 0;
+            
+            // Total target side hustle yang harus dikejar adalah gabungan defisit kas dan/atau kelebihan beban utang
+            let targetSideHustle = Math.max(defisitKas, kelebihanUtang);
+
+            // Jika sisa saldo positif tapi ada komponen ideal yang belum tercakup / struktur belum sehat murni
+            if (targetSideHustle > 0) {
                 warningPanel.classList.remove('hidden');
-                let deficit = Math.abs(net > 0 ? 0 : net);
-                if (totalUtangAktif > batasAmanUtang) {
-                    deficit += (totalUtangAktif - batasAmanUtang);
-                }
-                sideHustleTarget.innerText = formatRupiah(deficit);
-                warningText.innerText = `Porsi cicilan atau total pengeluaran melebihi batas aman rumus finansial.`;
+                sideHustleTarget.innerText = formatRupiah(targetSideHustle);
+                warningText.innerText = `Struktur keuangan belum sepenuhnya sehat. Anda memerlukan tambahan pendapatan untuk menutup defisit/beban utang.`;
             } else {
                 warningPanel.classList.add('hidden');
             }
 
-            if (net > 0 && totalUtangAktif <= batasAmanUtang) {
+            if (targetSideHustle === 0 && net >= 0) {
                 statusMsgEl.innerText = "✨ Keuangan Sehat & Terkendali!";
                 statusMsgEl.className = "text-xs mt-3 bg-emerald-700/40 px-2.5 py-1 rounded-lg inline-block font-medium";
             } else {
@@ -333,8 +341,8 @@
                 statusMsgEl.className = "text-xs mt-3 bg-rose-700/40 px-2.5 py-1 rounded-lg inline-block font-medium";
             }
 
-            localStorage.setItem('ar_smart_v5_transactions', JSON.stringify(transactions));
-            updateCharts(catTotals, income, totalExpense);
+            localStorage.setItem('ar_smart_v6_transactions', JSON.stringify(transactions));
+            updateCharts(catTotals, totalIncome, totalExpense);
         }
 
         function updateCharts(catTotals, income, expense) {
