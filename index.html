@@ -98,7 +98,7 @@
         <!-- Panduan Alokasi Ideal Berdasarkan Gaji -->
         <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-2xl">
             <h3 class="font-bold text-indigo-900 text-sm mb-2 flex items-center">
-                <i class="fa-solid fa-lightbulb text-indigo-600 mr-2"></i> Standar Alokasi Ideal (Berdasarkan Gaji Anda)
+                <i class="fa-solid fa-lightbulb text-indigo-600 mr-2"></i> Standar Alokasi Ideal (Berdasarkan Total Gaji)
             </h3>
             <div id="idealBudgetGuide" class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                 <div class="bg-white p-3 rounded-xl border border-indigo-100">
@@ -193,7 +193,7 @@
 
     <!-- Script Logika -->
     <script>
-        let transactions = JSON.parse(localStorage.getItem('ar_smart_v3_transactions')) || [
+        let transactions = JSON.parse(localStorage.getItem('ar_smart_v4_transactions')) || [
             { desc: 'Gaji Bulanan', amount: 2850000, category: 'Pemasukan' },
             { desc: 'Cicilan Motor / Utang', amount: 997500, category: 'Cicilan / Utang' },
             { desc: 'Makan Sehari-hari', amount: 900000, category: 'Makan' },
@@ -205,7 +205,6 @@
         let expenseChartInstance = null;
         let barChartInstance = null;
 
-        // Plugin teks tengah lingkaran untuk menampilkan persentase total/utama
         const centerTextPlugin = {
             id: 'centerText',
             beforeDraw(chart) {
@@ -301,19 +300,21 @@
             chartTotalExpenseEl.innerText = formatRupiah(totalExpense);
             countEl.innerText = `${transactions.length} item`;
 
-            // Tampilkan Standar Ideal berdasarkan Pemasukan
+            // Sinkronisasi otomatis Standar Alokasi berdasarkan total Pemasukan yang aktif
             document.getElementById('idealDebt').innerText = formatRupiah(income * 0.35);
             document.getElementById('idealLiving').innerText = formatRupiah(income * 0.45);
             document.getElementById('idealEmergency').innerText = formatRupiah(income * 0.10);
             document.getElementById('idealSkill').innerText = formatRupiah(income * 0.10);
 
-            // Deteksi Warning & Target Side Hustle (Cicilan > 35% atau net minus)
+            // Deteksi Warning & Kalkulasi Target Side Hustle Otomatis
             let totalUtangAktif = catTotals['Cicilan / Utang'];
-            if (net < 0 || totalUtangAktif > (income * 0.35)) {
+            let batasAmanUtang = income * 0.35;
+            
+            if (net < 0 || totalUtangAktif > batasAmanUtang) {
                 warningPanel.classList.remove('hidden');
                 let deficit = Math.abs(net > 0 ? 0 : net);
-                if (totalUtangAktif > (income * 0.35)) {
-                    deficit += (totalUtangAktif - (income * 0.35));
+                if (totalUtangAktif > batasAmanUtang) {
+                    deficit += (totalUtangAktif - batasAmanUtang);
                 }
                 sideHustleTarget.innerText = formatRupiah(deficit);
                 warningText.innerText = `Porsi cicilan atau total pengeluaran melebihi batas aman rumus finansial.`;
@@ -321,7 +322,7 @@
                 warningPanel.classList.add('hidden');
             }
 
-            if (net > 0 && totalUtangAktif <= (income * 0.35)) {
+            if (net > 0 && totalUtangAktif <= batasAmanUtang) {
                 statusMsgEl.innerText = "✨ Keuangan Sehat & Terkendali!";
                 statusMsgEl.className = "text-xs mt-3 bg-emerald-700/40 px-2.5 py-1 rounded-lg inline-block font-medium";
             } else {
@@ -329,7 +330,7 @@
                 statusMsgEl.className = "text-xs mt-3 bg-rose-700/40 px-2.5 py-1 rounded-lg inline-block font-medium";
             }
 
-            localStorage.setItem('ar_smart_v3_transactions', JSON.stringify(transactions));
+            localStorage.setItem('ar_smart_v4_transactions', JSON.stringify(transactions));
             updateCharts(catTotals, income, totalExpense);
         }
 
@@ -337,11 +338,6 @@
             const ctxExpense = document.getElementById('expenseChart').getContext('2d');
             if (expenseChartInstance) expenseChartInstance.destroy();
 
-            // Filter kategori yang memiliki nilai > 0 agar grafik pizza proporsional
-            let labels = [];
-            let dataValues = [];
-            let backgroundColors = ['#f43f5e', '#3b82f6', '#f59e0b', '#10b981', '#a855f7', '#14b8a6', '#6366f1'];
-            
             let colorsMap = {
                 'Cicilan / Utang': '#f43f5e',
                 'Kebutuhan / Kos': '#3b82f6',
@@ -355,7 +351,6 @@
             let activeLabels = [];
             let activeData = [];
             let activeColors = [];
-
             let totalExp = Object.values(catTotals).reduce((a, b) => a + b, 0);
 
             for (let [cat, val] of Object.entries(catTotals)) {
