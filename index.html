@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR's Manajemen Keuangan</title>
+    <title>AR's Manajemen Keuangan - Smart Budgeting & Side Hustle</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome -->
@@ -21,7 +21,7 @@
                     <span class="bg-emerald-400 text-slate-900 font-bold px-2 py-0.5 rounded text-xs">AR</span>
                     <h1 class="text-lg font-bold tracking-wide">AR's Manajemen Keuangan</h1>
                 </div>
-                <p class="text-xs text-indigo-200 mt-0.5">Anti Boncos & Smart Budgeting</p>
+                <p class="text-xs text-indigo-200 mt-0.5">Anti Boncos & Smart Budgeting Tool</p>
             </div>
             <button onclick="resetData()" class="text-xs bg-indigo-700 hover:bg-indigo-800 px-3.5 py-2 rounded-xl transition font-medium flex items-center shadow-sm">
                 <i class="fa-solid fa-rotate-right mr-1.5"></i> Reset Data
@@ -56,7 +56,7 @@
         <!-- Baris Atas: Grafik & Ringkasan -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            <!-- Kotak 1: Alokasi Pengeluaran-->
+            <!-- Kotak 1: Alokasi Pengeluaran (Donut Chart) -->
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
                 <div>
                     <h3 class="font-bold text-slate-700 text-sm mb-1">Alokasi Anggaran (Potongan Pizza)</h3>
@@ -95,10 +95,10 @@
             </div>
         </div>
 
-        <!-- Panduan Alokasi Ideal Berdasarkan Gaji -->
+        <!-- Panduan Alokasi Ideal Berdasarkan Gaji/Total Pemasukan -->
         <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-2xl">
             <h3 class="font-bold text-indigo-900 text-sm mb-2 flex items-center">
-                <i class="fa-solid fa-lightbulb text-indigo-600 mr-2"></i> Standar Alokasi Ideal (Berdasarkan Total Gaji)
+                <i class="fa-solid fa-lightbulb text-indigo-600 mr-2"></i> Standar Alokasi Ideal (Berdasarkan Total Pemasukan)
             </h3>
             <div id="idealBudgetGuide" class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                 <div class="bg-white p-3 rounded-xl border border-indigo-100">
@@ -129,16 +129,17 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Keterangan / Nama Transaksi</label>
-                        <input type="text" id="desc" required placeholder="Contoh: Gaji, Makan Siang, Bensin" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                        <input type="text" id="desc" required placeholder="Contoh: Gaji, Narik inDrive, Makan" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Nominal (Rp)</label>
-                        <input type="number" id="amount" required placeholder="50000" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                        <input type="number" id="amount" required placeholder="100000" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Kategori Transaksi</label>
                         <select id="category" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
-                            <option value="Pemasukan">Pemasukan / Gaji</option>
+                            <option value="Pemasukan Utama">Pemasukan Utama / Gaji</option>
+                            <option value="Pemasukan Sampingan">Pemasukan Sampingan (Side Hustle)</option>
                             <option value="Cicilan / Utang">Cicilan / Utang</option>
                             <option value="Kebutuhan / Kos">Kebutuhan / Kos</option>
                             <option value="Makan">Makan</option>
@@ -193,10 +194,11 @@
 
     <!-- Script Logika -->
     <script>
-        let transactions = JSON.parse(localStorage.getItem('ar_smart_v4_transactions')) || [
-            { desc: 'Gaji Bulanan', amount: 2850000, category: 'Pemasukan' },
-            { desc: 'Cicilan / Utang', amount: 997500, category: 'Cicilan / Utang' },
-            { desc: 'Makan Sehari-hari', amount: 900000, category: 'Makan & Jajan' },
+        let transactions = JSON.parse(localStorage.getItem('ar_smart_v5_transactions')) || [
+            { desc: 'Gaji Bulanan', amount: 2850000, category: 'Pemasukan Utama' },
+            { desc: 'Narik inDrive Sampingan', amount: 500000, category: 'Pemasukan Sampingan' },
+            { desc: 'Cicilan Motor / Utang', amount: 997500, category: 'Cicilan / Utang' },
+            { desc: 'Makan Sehari-hari', amount: 900000, category: 'Makan' },
             { desc: 'Bensin & Transport', amount: 382500, category: 'Transport' },
             { desc: 'Tabungan Darurat', amount: 285000, category: 'Dana Darurat' },
             { desc: 'Upgrade Skill', amount: 285000, category: 'Upgrade Skill' }
@@ -261,7 +263,7 @@
             };
 
             transactions.forEach((trx, index) => {
-                if (trx.category === 'Pemasukan') {
+                if (trx.category === 'Pemasukan Utama' || trx.category === 'Pemasukan Sampingan') {
                     income += trx.amount;
                 } else if (catTotals.hasOwnProperty(trx.category)) {
                     catTotals[trx.category] += trx.amount;
@@ -271,7 +273,8 @@
                 item.className = 'flex justify-between items-center p-3.5 bg-slate-50 rounded-xl border border-slate-100 text-sm hover:bg-slate-100/50 transition';
                 
                 let badgeColor = 'bg-blue-100 text-blue-700';
-                if(trx.category === 'Pemasukan') badgeColor = 'bg-emerald-100 text-emerald-700';
+                if(trx.category === 'Pemasukan Utama') badgeColor = 'bg-emerald-100 text-emerald-700';
+                if(trx.category === 'Pemasukan Sampingan') badgeColor = 'bg-teal-100 text-teal-700';
                 if(trx.category === 'Cicilan / Utang') badgeColor = 'bg-rose-100 text-rose-700';
                 if(trx.category === 'Makan' || trx.category === 'Transport') badgeColor = 'bg-amber-100 text-amber-700';
                 if(trx.category === 'Jajan / Keinginan') badgeColor = 'bg-purple-100 text-purple-700';
@@ -282,8 +285,8 @@
                         <span class="text-[10px] px-2.5 py-0.5 rounded-full font-semibold ${badgeColor}">${trx.category}</span>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <span class="font-bold ${trx.category === 'Pemasukan' ? 'text-emerald-600' : 'text-slate-700'}">
-                            ${trx.category === 'Pemasukan' ? '+' : '-'} ${formatRupiah(trx.amount)}
+                        <span class="font-bold ${(trx.category.includes('Pemasukan')) ? 'text-emerald-600' : 'text-slate-700'}">
+                            ${trx.category.includes('Pemasukan') ? '+' : '-'} ${formatRupiah(trx.amount)}
                         </span>
                         <button onclick="deleteTransaction(${index})" class="text-slate-400 hover:text-rose-500 transition p-1">
                             <i class="fa-solid fa-trash-can text-xs"></i>
@@ -300,7 +303,7 @@
             chartTotalExpenseEl.innerText = formatRupiah(totalExpense);
             countEl.innerText = `${transactions.length} item`;
 
-            // Sinkronisasi otomatis Standar Alokasi berdasarkan total Pemasukan yang aktif
+            // Sinkronisasi otomatis Standar Alokasi berdasarkan total Pemasukan (Utama + Sampingan)
             document.getElementById('idealDebt').innerText = formatRupiah(income * 0.35);
             document.getElementById('idealLiving').innerText = formatRupiah(income * 0.45);
             document.getElementById('idealEmergency').innerText = formatRupiah(income * 0.10);
@@ -330,7 +333,7 @@
                 statusMsgEl.className = "text-xs mt-3 bg-rose-700/40 px-2.5 py-1 rounded-lg inline-block font-medium";
             }
 
-            localStorage.setItem('ar_smart_v4_transactions', JSON.stringify(transactions));
+            localStorage.setItem('ar_smart_v5_transactions', JSON.stringify(transactions));
             updateCharts(catTotals, income, totalExpense);
         }
 
