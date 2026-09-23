@@ -580,48 +580,74 @@
         }
 
         function exportToPDF() {
-            let printWindow = window.open('', '', 'height=600,width=800');
+            let printWindow = window.open('', '', 'height=700,width=900');
+            
+            // Membalik urutan data (yang terlama di atas, yang terbaru di bawah seperti rekening koran)
+            let chronologicalTransactions = [...transactions].reverse();
+            let runningBalance = 0;
+
             let htmlContent = `
                 <html>
                 <head>
                     <title>Rekening Koran - AR's Manajemen Keuangan</title>
                     <style>
-                        body { font-family: sans-serif; padding: 20px; color: #333; }
-                        h2 { text-align: center; color: #4f46e5; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
-                        th, td { border: 1px solid #cbd5e1; padding: 8px 12px; text-align: left; }
-                        th { background-color: #f1f5f9; }
+                        body { font-family: sans-serif; padding: 20px; color: #333; font-size: 11px; }
+                        h2 { text-align: center; color: #4f46e5; margin-bottom: 5px; }
+                        p.subtitle { text-align: center; color: #666; margin-bottom: 20px; font-size: 12px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        th, td { border: 1px solid #cbd5e1; padding: 6px 10px; text-align: left; }
+                        th { background-color: #f1f5f9; text-align: center; font-weight: bold; }
                         .text-right { text-align: right; }
+                        .text-center { text-align: center; }
+                        .text-green { color: #059669; font-weight: 600; }
+                        .text-red { color: #dc2626; font-weight: 600; }
                     </style>
                 </head>
                 <body>
                     <h2>AR's Manajemen Keuangan - Rekening Koran</h2>
-                    <p>Dicetak pada: ${new Date().toLocaleDateString('id-ID', { dateStyle: 'full' })}</p>
+                    <p class="subtitle">Dicetak pada: ${new Date().toLocaleDateString('id-ID', { dateStyle: 'full' })}</p>
                     <table>
                         <thead>
                             <tr>
-                                <th>No</th>
-                                <th>Keterangan / Transaksi</th>
-                                <th>Kategori</th>
-                                <th class="text-right">Nominal</th>
+                                <th style="width: 4%;">No</th>
+                                <th style="width: 32%;">Keterangan / Transaksi</th>
+                                <th style="width: 16%;">Kategori</th>
+                                <th class="text-right" style="width: 16%;">Debet (+)</th>
+                                <th class="text-right" style="width: 16%;">Kredit (-)</th>
+                                <th class="text-right" style="width: 16%;">Saldo Akhir</th>
                             </tr>
                         </thead>
                         <tbody>
             `;
 
-            transactions.forEach((t, i) => {
-                let isIncome = t.category.includes('Pemasukan');
-                htmlContent += `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td>${t.desc}</td>
-                        <td>${t.category}</td>
-                        <td class="text-right" style="color: ${isIncome ? 'green' : 'black'}">
-                            ${isIncome ? '+' : '-'} ${t.amount.toLocaleString('id-ID')}
-                        </td>
-                    </tr>
-                `;
-            });
+            if (chronologicalTransactions.length === 0) {
+                htmlContent += `<tr><td colspan="6" class="text-center" style="padding: 20px; color: #888;">Belum ada transaksi tercatat.</td></tr>`;
+            } else {
+                chronologicalTransactions.forEach((t, i) => {
+                    let isIncome = t.category.includes('Pemasukan');
+                    let debetStr = '-';
+                    let kreditStr = '-';
+
+                    if (isIncome) {
+                        runningBalance += t.amount;
+                        debetStr = t.amount.toLocaleString('id-ID');
+                    } else {
+                        runningBalance -= t.amount;
+                        kreditStr = t.amount.toLocaleString('id-ID');
+                    }
+
+                    htmlContent += `
+                        <tr>
+                            <td class="text-center">${i + 1}</td>
+                            <td>${t.desc}</td>
+                            <td>${t.category}</td>
+                            <td class="text-right text-green">${isIncome ? debetStr : '-'}</td>
+                            <td class="text-right text-red">${!isIncome ? kreditStr : '-'}</td>
+                            <td class="text-right" style="font-weight: bold;">${runningBalance.toLocaleString('id-ID')}</td>
+                        </tr>
+                    `;
+                });
+            }
 
             htmlContent += `
                         </tbody>
