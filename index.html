@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR's Manajemen Keuangan - Kelola Keuangan, Anti Boncos</title>
+    <title>AR's Manajemen Keuangan - Smart Budgeting & Side Hustle</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Chart.js untuk Grafik Lingkaran & Batang -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-12">
@@ -21,7 +21,7 @@
                     <span class="bg-emerald-400 text-slate-900 font-bold px-2 py-0.5 rounded text-xs">AR</span>
                     <h1 class="text-lg font-bold tracking-wide">AR's Manajemen Keuangan</h1>
                 </div>
-                <p class="text-xs text-indigo-200 mt-0.5">Kelola Keuangan, Anti Boncos</p>
+                <p class="text-xs text-indigo-200 mt-0.5">Anti Boncos & Smart Budgeting Tool</p>
             </div>
             <button onclick="resetData()" class="text-xs bg-indigo-700 hover:bg-indigo-800 px-3.5 py-2 rounded-xl transition font-medium flex items-center shadow-sm">
                 <i class="fa-solid fa-rotate-right mr-1.5"></i> Reset Data
@@ -31,28 +31,49 @@
 
     <main class="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
 
+        <!-- Panel Peringatan & Target Side Hustle (Muncul jika ada warning) -->
+        <div id="warningPanel" class="hidden bg-rose-50 border border-rose-200 p-5 rounded-2xl shadow-sm space-y-3">
+            <div class="flex items-start space-x-3">
+                <div class="bg-rose-500 text-white p-2 rounded-xl mt-0.5">
+                    <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-rose-800 text-sm">Peringatan Keuangan (Boncos Detected!)</h3>
+                    <p id="warningText" class="text-xs text-rose-600 mt-0.5">Pengeluaran atau cicilan Anda melampaui batas aman rumus finansial.</p>
+                </div>
+            </div>
+            <!-- Kotak Solusi Side Hustle -->
+            <div class="bg-white p-4 rounded-xl border border-rose-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div>
+                    <p class="text-xs font-semibold text-slate-700">Target Tambahan Pendapatan (Side Hustle) yang Dibutuhkan:</p>
+                    <p id="sideHustleTarget" class="text-lg font-extrabold text-rose-600 mt-0.5">Rp 0</p>
+                </div>
+                <button onclick="openSideHustleTips()" class="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-sm flex items-center justify-center">
+                    <i class="fa-solid fa-bolt mr-1.5"></i> Tips Kejar Target Pendapatan
+                </button>
+            </div>
+        </div>
+
         <!-- Baris Atas: Grafik & Ringkasan -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            <!-- Kotak 1: Alokasi Pengeluaran (Donut Chart dengan Persentase Tengah) -->
+            <!-- Kotak 1: Alokasi Pengeluaran (Donut Chart) -->
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
                 <div>
-                    <h3 class="font-bold text-slate-700 text-sm mb-1">Alokasi Pengeluaran Bulan Ini</h3>
-                    <p class="text-xs text-slate-400 mb-2">Proporsi pengeluaran berdasarkan kategori</p>
+                    <h3 class="font-bold text-slate-700 text-sm mb-1">Alokasi Anggaran</h3>
+                    <p class="text-xs text-slate-400 mb-2">Proporsi (Utang 35% | Pokok 45% | Darurat/Skill 20%)</p>
                 </div>
                 <div class="relative w-48 h-48 mx-auto my-2">
                     <canvas id="expenseChart"></canvas>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center text-xs">
-                    <span class="text-slate-500 font-medium">Total Pengeluaran:</span>
+                    <span class="text-slate-500 font-medium">Total Pengeluaran & Cicilan:</span>
                     <span id="chartTotalExpense" class="font-bold text-rose-600 text-sm">Rp 0</span>
                 </div>
             </div>
 
-            <!-- Kotak 2: Grafik Pemasukan vs Pengeluaran & Sisa Saldo -->
+            <!-- Kotak 2: Grafik Batang & Sisa Saldo -->
             <div class="space-y-6 flex flex-col justify-between">
-                
-                <!-- Grafik Batang Kecil: Pemasukan vs Pengeluaran -->
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                     <h3 class="font-bold text-slate-700 text-sm mb-3">Pemasukan vs Pengeluaran</h3>
                     <div class="h-32">
@@ -60,11 +81,10 @@
                     </div>
                 </div>
 
-                <!-- Sisa Saldo Card -->
                 <div class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-5 rounded-2xl shadow-md">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-xs text-emerald-100 font-medium uppercase tracking-wider">Sisa Saldo / Tabungan</p>
+                            <p class="text-xs text-emerald-100 font-medium uppercase tracking-wider">Sisa Saldo / Bersih</p>
                             <h2 id="netBalance" class="text-2xl font-extrabold mt-1">Rp 0</h2>
                         </div>
                         <div class="bg-white/20 p-2 rounded-xl">
@@ -73,7 +93,31 @@
                     </div>
                     <p id="statusMessage" class="text-xs mt-3 bg-white/15 px-2.5 py-1 rounded-lg inline-block font-medium">Mulai catat transaksi Anda di bawah!</p>
                 </div>
+            </div>
+        </div>
 
+        <!-- Panduan Alokasi Ideal Berdasarkan Gaji -->
+        <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-2xl">
+            <h3 class="font-bold text-indigo-900 text-sm mb-2 flex items-center">
+                <i class="fa-solid fa-lightbulb text-indigo-600 mr-2"></i> Standar Alokasi Ideal (Berdasarkan Gaji Anda)
+            </h3>
+            <div id="idealBudgetGuide" class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div class="bg-white p-3 rounded-xl border border-indigo-100">
+                    <span class="text-slate-400 block">Bayar Utang (35%)</span>
+                    <span id="idealDebt" class="font-bold text-slate-700 text-sm">Rp 0</span>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-indigo-100">
+                    <span class="text-slate-400 block">Kebutuhan Pokok (45%)</span>
+                    <span id="idealLiving" class="font-bold text-slate-700 text-sm">Rp 0</span>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-indigo-100">
+                    <span class="text-slate-400 block">Dana Darurat (10%)</span>
+                    <span id="idealEmergency" class="font-bold text-slate-700 text-sm">Rp 0</span>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-indigo-100">
+                    <span class="text-slate-400 block">Upgrade Skill (10%)</span>
+                    <span id="idealSkill" class="font-bold text-slate-700 text-sm">Rp 0</span>
+                </div>
             </div>
         </div>
 
@@ -86,19 +130,20 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Keterangan / Nama Transaksi</label>
-                        <input type="text" id="desc" required placeholder="Contoh: Gaji, Sewa Kos, Cicilan Mobil" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                        <input type="text" id="desc" required placeholder="Contoh: Gaji, Bayar Cicilan, Makan" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Nominal (Rp)</label>
-                        <input type="number" id="amount" required placeholder="5000000" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                        <input type="number" id="amount" required placeholder="2850000" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Kategori</label>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Kategori Anggaran</label>
                         <select id="category" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
-                            <option value="Pemasukan">Pemasukan</option>
-                            <option value="Kebutuhan">Kebutuhan (Kos, Makan, Transport)</option>
-                            <option value="Keinginan">Keinginan (Lifestyle, Nongkrong)</option>
-                            <option value="Cicilan">Cicilan / Paylater</option>
+                            <option value="Pemasukan">Pemasukan / Gaji</option>
+                            <option value="Utang">Bayar Utang / Cicilan (35%)</option>
+                            <option value="Kebutuhan">Kebutuhan Pokok / Kos / Transport (45%)</option>
+                            <option value="Darurat">Dana Darurat (10%)</option>
+                            <option value="Skill">Upgrade Skill / Investasi Leher ke Atas (10%)</option>
                         </select>
                     </div>
                 </div>
@@ -123,54 +168,39 @@
 
     </main>
 
-    <!-- Script Logika & Chart -->
+    <!-- Modal Tips Side Hustle -->
+    <div id="sideHustleModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white max-w-md w-full p-6 rounded-2xl shadow-xl space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 text-base"><i class="fa-solid fa-bolt text-rose-500 mr-2"></i> Strategi Kejar Side Hustle</h3>
+                <button onclick="closeSideHustleModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Karena pengeluaran/cicilan Anda melebihi batas aman, disarankan mencari tambahan pemasukan segera untuk menambal defisit tersebut:
+            </p>
+            <ul class="text-xs text-slate-700 space-y-2 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Ambil orderan ride-hailing tambahan di jam sibuk (peak hours).</li>
+                <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Gunakan anggaran 10% (Upgrade Skill) untuk belajar hal baru yang bernilai tinggi.</li>
+                <li><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i> Pangkas biaya kebutuhan pokok yang tidak mendesak sementara waktu.</li>
+            </ul>
+            <button onclick="closeSideHustleModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2.5 rounded-xl transition">
+                Siap, Paham!
+            </button>
+        </div>
+    </div>
+
+    <!-- Script Logika -->
     <script>
-        let transactions = JSON.parse(localStorage.getItem('ar_finance_transactions')) || [
-            { desc: 'Gaji Pokok', amount: 5000000, category: 'Pemasukan' },
-            { desc: 'Sewa Kos', amount: 1000000, category: 'Kebutuhan' },
-            { desc: 'Makan & Transport', amount: 1500000, category: 'Kebutuhan' },
-            { desc: 'Lifestyle / Nongkrong', amount: 300000, category: 'Keinginan' }
+        let transactions = JSON.parse(localStorage.getItem('ar_smart_transactions')) || [
+            { desc: 'Gaji Bulanan', amount: 2850000, category: 'Pemasukan' },
+            { desc: 'Cicilan / Utang', amount: 997500, category: 'Utang' },
+            { desc: 'Kebutuhan Kos & Transport', amount: 1282500, category: 'Kebutuhan' },
+            { desc: 'Tabungan Darurat', amount: 285000, category: 'Darurat' },
+            { desc: 'Buku / Skill', amount: 285000, category: 'Skill' }
         ];
 
         let expenseChartInstance = null;
         let barChartInstance = null;
-
-        // Plugin custom Chart.js untuk menampilkan persentase/keterangan di tengah Donut Chart
-        const centerTextPlugin = {
-            id: 'centerText',
-            beforeDraw(chart) {
-                if (chart.config.type !== 'doughnut') return;
-                const { ctx, width, height } = chart;
-                ctx.restore();
-                const fontSize = (height / 114).toFixed(2);
-                ctx.font = `bold ${fontSize}em sans-serif`;
-                ctx.textBaseline = 'middle';
-                ctx.fillStyle = '#334155';
-
-                // Ambil data aktif untuk menghitung total atau kategori terbesar
-                const dataset = chart.data.datasets[0];
-                const total = dataset.data.reduce((acc, val) => acc + val, 0);
-                
-                let text = "0%";
-                if (total > 0) {
-                    // Contoh menampilkan total persentase pengeluaran aktif atau teks ringkas
-                    text = "100%";
-                }
-
-                const textX = Math.round((width - ctx.measureText(text).width) / 2);
-                const textY = height / 2 - 5;
-
-                ctx.fillText(text, textX, textY);
-
-                // Label kecil di bawah persentase tengah
-                ctx.font = `normal ${fontSize * 0.4}em sans-serif`;
-                ctx.fillStyle = '#64748b';
-                const subText = "Alokasi";
-                const subTextX = Math.round((width - ctx.measureText(subText).width) / 2);
-                ctx.fillText(subText, subTextX, textY + 20);
-                ctx.save();
-            }
-        };
 
         function formatRupiah(number) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number);
@@ -182,36 +212,33 @@
             const statusMsgEl = document.getElementById('statusMessage');
             const countEl = document.getElementById('transactionCount');
             const chartTotalExpenseEl = document.getElementById('chartTotalExpense');
+            const warningPanel = document.getElementById('warningPanel');
+            const warningText = document.getElementById('warningText');
+            const sideHustleTarget = document.getElementById('sideHustleTarget');
 
             listEl.innerHTML = '';
             let income = 0;
+            let totalUtang = 0;
             let totalKebutuhan = 0;
-            let totalKeinginan = 0;
-            let totalCicilan = 0;
-
-            if (transactions.length === 0) {
-                listEl.innerHTML = '<p class="text-center text-xs text-slate-400 py-6">Belum ada transaksi tercatat.</p>';
-            }
+            let totalDarurat = 0;
+            let totalSkill = 0;
 
             transactions.forEach((trx, index) => {
-                if (trx.category === 'Pemasukan') {
-                    income += trx.amount;
-                } else if (trx.category === 'Kebutuhan') {
-                    totalKebutuhan += trx.amount;
-                } else if (trx.category === 'Keinginan') {
-                    totalKeinginan += trx.amount;
-                } else if (trx.category === 'Cicilan') {
-                    totalCicilan += trx.amount;
-                }
+                if (trx.category === 'Pemasukan') income += trx.amount;
+                if (trx.category === 'Utang') totalUtang += trx.amount;
+                if (trx.category === 'Kebutuhan') totalKebutuhan += trx.amount;
+                if (trx.category === 'Darurat') totalDarurat += trx.amount;
+                if (trx.category === 'Skill') totalSkill += trx.amount;
 
                 const item = document.createElement('div');
                 item.className = 'flex justify-between items-center p-3.5 bg-slate-50 rounded-xl border border-slate-100 text-sm hover:bg-slate-100/50 transition';
                 
                 let badgeColor = 'bg-blue-100 text-blue-700';
                 if(trx.category === 'Pemasukan') badgeColor = 'bg-emerald-100 text-emerald-700';
+                if(trx.category === 'Utang') badgeColor = 'bg-rose-100 text-rose-700';
                 if(trx.category === 'Kebutuhan') badgeColor = 'bg-amber-100 text-amber-700';
-                if(trx.category === 'Keinginan') badgeColor = 'bg-purple-100 text-purple-700';
-                if(trx.category === 'Cicilan') badgeColor = 'bg-rose-100 text-rose-700';
+                if(trx.category === 'Darurat') badgeColor = 'bg-teal-100 text-teal-700';
+                if(trx.category === 'Skill') badgeColor = 'bg-purple-100 text-purple-700';
 
                 item.innerHTML = `
                     <div class="space-y-1">
@@ -230,60 +257,67 @@
                 listEl.appendChild(item);
             });
 
-            let totalExpense = totalKebutuhan + totalKeinginan + totalCicilan;
+            let totalExpense = totalUtang + totalKebutuhan + totalDarurat + totalSkill;
             let net = income - totalExpense;
 
             netBalanceEl.innerText = formatRupiah(net);
             chartTotalExpenseEl.innerText = formatRupiah(totalExpense);
             countEl.innerText = `${transactions.length} item`;
 
-            if (net > 0) {
-                statusMsgEl.innerText = "✨ Keuangan Sehat, Pertahankan Disiplin!";
-                statusMsgEl.className = "text-xs mt-3 bg-emerald-700/40 px-2.5 py-1 rounded-lg inline-block font-medium";
-            } else if (net < 0) {
-                statusMsgEl.innerText = "⚠️ Peringatan: Keuangan Minus (Boncos)!";
-                statusMsgEl.className = "text-xs mt-3 bg-rose-700/40 px-2.5 py-1 rounded-lg inline-block font-medium";
+            // Hitung Standar Ideal berdasarkan total Pemasukan
+            document.getElementById('idealDebt').innerText = formatRupiah(income * 0.35);
+            document.getElementById('idealLiving').innerText = formatRupiah(income * 0.45);
+            document.getElementById('idealEmergency').innerText = formatRupiah(income * 0.10);
+            document.getElementById('idealSkill').innerText = formatRupiah(income * 0.10);
+
+            // Logika Deteksi Warning & Target Side Hustle
+            if (net < 0 || totalUtang > (income * 0.35)) {
+                warningPanel.classList.remove('hidden');
+                let deficit = Math.abs(net > 0 ? 0 : net);
+                if (totalUtang > (income * 0.35)) {
+                    deficit += (totalUtang - (income * 0.35));
+                }
+                sideHustleTarget.innerText = formatRupiah(deficit);
+                warningText.innerText = `Porsi utang atau pengeluaran melebihi batas aman rumus finansial. Anda mengalami potensi defisit/beban berlebih.`;
             } else {
-                statusMsgEl.innerText = "⚖️ Keuangan Pas-pasan.";
-                statusMsgEl.className = "text-xs mt-3 bg-white/15 px-2.5 py-1 rounded-lg inline-block font-medium";
+                warningPanel.classList.add('hidden');
             }
 
-            localStorage.setItem('ar_finance_transactions', JSON.stringify(transactions));
-            updateCharts(totalKebutuhan, totalKeinginan, totalCicilan, income, totalExpense);
+            if (net > 0 && totalUtang <= (income * 0.35)) {
+                statusMsgEl.innerText = "✨ Keuangan Sehat & Sesuai Rumus Ideal!";
+                statusMsgEl.className = "text-xs mt-3 bg-emerald-700/40 px-2.5 py-1 rounded-lg inline-block font-medium";
+            } else {
+                statusMsgEl.innerText = "⚠️ Perlu Perhatian: Cek Panel Warning!";
+                statusMsgEl.className = "text-xs mt-3 bg-rose-700/40 px-2.5 py-1 rounded-lg inline-block font-medium";
+            }
+
+            localStorage.setItem('ar_smart_transactions', JSON.stringify(transactions));
+            updateCharts(totalUtang, totalKebutuhan, totalDarurat, totalSkill, income, totalExpense);
         }
 
-        function updateCharts(kebutuhan, keinginan, cicilan, income, expense) {
-            // Donut Chart Alokasi (Potongan Pizza / Persentase)
+        function updateCharts(utang, kebutuhan, darurat, skill, income, expense) {
             const ctxExpense = document.getElementById('expenseChart').getContext('2d');
             if (expenseChartInstance) expenseChartInstance.destroy();
 
-            // Hitung persentase untuk tooltip yang lebih informatif
-            const totalExp = kebutuhan + keinginan + cicilan;
+            const totalExp = utang + kebutuhan + darurat + skill;
 
             expenseChartInstance = new Chart(ctxExpense, {
                 type: 'doughnut',
                 data: {
-                    labels: [
-                        `Kebutuhan (${totalExp > 0 ? Math.round((kebutuhan/totalExp)*100) : 0}%)`, 
-                        `Keinginan (${totalExp > 0 ? Math.round((keinginan/totalExp)*100) : 0}%)`, 
-                        `Cicilan (${totalExp > 0 ? Math.round((cicilan/totalExp)*100) : 0}%)`
-                    ],
+                    labels: ['Utang (35%)', 'Pokok (45%)', 'Darurat (10%)', 'Skill (10%)'],
                     datasets: [{
-                        data: [kebutuhan, keinginan, cicilan],
-                        backgroundColor: ['#3b82f6', '#a855f7', '#f43f5e'],
+                        data: [utang, kebutuhan, darurat, skill],
+                        backgroundColor: ['#f43f5e', '#f59e0b', '#14b8a6', '#a855f7'],
                         borderWidth: 2,
                         borderColor: '#ffffff',
-                        hoverOffset: 6
+                        hoverOffset: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { boxWidth: 10, font: { size: 10 } }
-                        },
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
@@ -295,11 +329,9 @@
                         }
                     },
                     cutout: '65%'
-                },
-                plugins: [centerTextPlugin]
+                }
             });
 
-            // Bar Chart Pemasukan vs Pengeluaran
             const ctxBar = document.getElementById('barChart').getContext('2d');
             if (barChartInstance) barChartInstance.destroy();
 
@@ -317,16 +349,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return ` Rp ${context.raw.toLocaleString('id-ID')}`;
-                                }
-                            }
-                        }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
                         y: { display: false },
                         x: { grid: { display: false }, ticks: { font: { size: 10 } } }
@@ -352,13 +375,20 @@
         }
 
         function resetData() {
-            if(confirm("Yakin ingin mereset semua data keuangan?")) {
+            if(confirm("Yakin ingin mereset data keuangan?")) {
                 transactions = [];
                 updateUI();
             }
         }
 
-        // Jalankan saat pertama muat
+        function openSideHustleTips() {
+            document.getElementById('sideHustleModal').classList.remove('hidden');
+        }
+
+        function closeSideHustleModal() {
+            document.getElementById('sideHustleModal').classList.add('hidden');
+        }
+
         updateUI();
     </script>
 </body>
