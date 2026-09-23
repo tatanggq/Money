@@ -11,7 +11,7 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-12">
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-12" onclick="closeDropdownOnOutside(event)">
 
     <!-- Header -->
     <header class="bg-indigo-600 text-white shadow-md">
@@ -142,19 +142,23 @@
                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Nominal (Rp)</label>
                         <input type="number" id="amount" required placeholder="50000" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
                     </div>
-                    <div>
+                    <div class="relative">
                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Kategori Transaksi</label>
-                        <select id="category" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
-                            <option value="Pemasukan Utama">Pemasukan Utama / Gaji</option>
-                            <option value="Pemasukan Sampingan">Pemasukan Sampingan (Side Hustle)</option>
-                            <option value="Cicilan / Utang">Cicilan / Utang</option>
-                            <option value="Kebutuhan / Kos">Kebutuhan / Kos</option>
-                            <option value="Makan">Makan</option>
-                            <option value="Transport">Transport</option>
-                            <option value="Jajan / Keinginan">Jajan / Keinginan / Lifestyle</option>
-                            <option value="Dana Darurat">Dana Darurat</option>
-                            <option value="Upgrade Skill">Upgrade Skill / Investasi</option>
-                        </select>
+                        <!-- Custom Select Trigger -->
+                        <div id="customSelectBtn" onclick="toggleDropdown(event)" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50 flex justify-between items-center cursor-pointer select-none focus:ring-2 focus:ring-indigo-500">
+                            <div class="flex items-center space-x-2">
+                                <span id="selectedCategoryDot" class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                <span id="selectedCategoryText" class="font-medium text-slate-700">Pemasukan Utama</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                        </div>
+                        <!-- Hidden Real Input Value -->
+                        <input type="hidden" id="category" value="Pemasukan Utama">
+
+                        <!-- Custom Dropdown Options List -->
+                        <div id="customDropdownList" class="hidden absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-30 max-h-56 overflow-y-auto p-1.5 space-y-1">
+                            <!-- Options generated via JS -->
+                        </div>
                     </div>
                 </div>
                 <div class="flex space-x-3">
@@ -218,18 +222,62 @@
         let expenseChartInstance = null;
         let barChartInstance = null;
 
-        // Peta Warna Universal yang Konsisten (Chart, Badge Riwayat, dan Indikator Form)
+        // Peta Warna Universal yang Konsisten (Chart, Badge Riwayat, dan Indikator Custom Dropdown Form)
         const categoryStyles = {
             'Pemasukan Utama': { bg: 'bg-emerald-100', text: 'text-emerald-700', hex: '#10b981' },
             'Pemasukan Sampingan': { bg: 'bg-teal-100', text: 'text-teal-700', hex: '#14b8a6' },
             'Cicilan / Utang': { bg: 'bg-rose-100', text: 'text-rose-700', hex: '#f43f5e' },
             'Kebutuhan / Kos': { bg: 'bg-blue-100', text: 'text-blue-700', hex: '#3b82f6' },
             'Makan': { bg: 'bg-amber-100', text: 'text-amber-700', hex: '#f59e0b' },
-            'Transport': { bg: 'bg-emerald-100', text: 'text-emerald-700', hex: '#10b981' }, // Selaras dengan warna donut chart Transport
+            'Transport': { bg: 'bg-emerald-100', text: 'text-emerald-700', hex: '#10b981' },
             'Jajan / Keinginan': { bg: 'bg-purple-100', text: 'text-purple-700', hex: '#a855f7' },
             'Dana Darurat': { bg: 'bg-teal-100', text: 'text-teal-700', hex: '#14b8a6' },
             'Upgrade Skill': { bg: 'bg-indigo-100', text: 'text-indigo-700', hex: '#6366f1' }
         };
+
+        const categoriesList = [
+            'Pemasukan Utama',
+            'Pemasukan Sampingan',
+            'Cicilan / Utang',
+            'Kebutuhan / Kos',
+            'Makan',
+            'Transport',
+            'Jajan / Keinginan',
+            'Dana Darurat',
+            'Upgrade Skill'
+        ];
+
+        function renderCustomDropdown() {
+            const listEl = document.getElementById('customDropdownList');
+            listEl.innerHTML = '';
+            categoriesList.forEach(cat => {
+                const style = categoryStyles[cat];
+                const div = document.createElement('div');
+                div.className = 'flex items-center space-x-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 cursor-pointer text-xs font-medium text-slate-700 transition';
+                div.innerHTML = `<span class="w-3 h-3 rounded-full shrink-0" style="background-color: ${style.hex}"></span><span>${cat}</span>`;
+                div.onclick = () => selectCategory(cat);
+                listEl.appendChild(div);
+            });
+        }
+
+        function toggleDropdown(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('customDropdownList');
+            dropdown.classList.toggle('hidden');
+        }
+
+        function selectCategory(cat) {
+            document.getElementById('category').value = cat;
+            document.getElementById('selectedCategoryText').innerText = cat;
+            document.getElementById('selectedCategoryDot').style.backgroundColor = categoryStyles[cat].hex;
+            document.getElementById('customDropdownList').classList.add('hidden');
+        }
+
+        function closeDropdownOnOutside(e) {
+            if (!e.target.closest('#customSelectBtn') && !e.target.closest('#customDropdownList')) {
+                document.getElementById('customDropdownList').classList.add('hidden');
+            }
+        }
 
         const centerTextPlugin = {
             id: 'centerText',
@@ -301,7 +349,6 @@
                 const item = document.createElement('div');
                 item.className = 'flex justify-between items-center p-3.5 bg-slate-50 rounded-xl border border-slate-100 text-sm hover:bg-slate-100/50 transition';
                 
-                // Ambil warna badge konsisten dari peta kategori
                 let style = categoryStyles[trx.category] || { bg: 'bg-blue-100', text: 'text-blue-700' };
                 let badgeColor = `${style.bg} ${style.text}`;
 
@@ -335,20 +382,17 @@
             chartTotalExpenseEl.innerText = formatRupiah(totalExpense);
             countEl.innerText = `${transactions.length} item`;
 
-            // Standar Alokasi Ideal Berdasarkan Total Pemasukan
             document.getElementById('idealDebt').innerText = formatRupiah(totalIncome * 0.35);
             document.getElementById('idealLiving').innerText = formatRupiah(totalIncome * 0.45);
             document.getElementById('idealEmergency').innerText = formatRupiah(totalIncome * 0.10);
             document.getElementById('idealSkill').innerText = formatRupiah(totalIncome * 0.10);
 
-            // Perhitungan Target Side Hustle Dinamis
             let totalUtangAktif = catTotals['Cicilan / Utang'];
             let batasAmanUtang = totalIncome * 0.35;
             let defisitKas = net < 0 ? Math.abs(net) : 0;
             let kelebihanUtang = totalUtangAktif > batasAmanUtang ? (totalUtangAktif - batasAmanUtang) : 0;
             let targetSideHustle = Math.max(defisitKas, kelebihanUtang);
 
-            // Logika Perubahan Warna Kotak Saldo Dinamis
             balanceCard.className = "p-5 rounded-2xl shadow-md transition-all duration-300 text-white ";
             if (net < 0) {
                 balanceCard.classList.add("bg-gradient-to-r", "from-rose-500", "to-red-600");
@@ -491,6 +535,7 @@
             }
 
             document.getElementById('transactionForm').reset();
+            selectCategory('Pemasukan Utama');
             updateUI();
         }
 
@@ -498,7 +543,7 @@
             const trx = transactions[index];
             document.getElementById('desc').value = trx.desc;
             document.getElementById('amount').value = trx.amount;
-            document.getElementById('category').value = trx.category;
+            selectCategory(trx.category);
             document.getElementById('editIndex').value = index;
 
             document.getElementById('formTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-indigo-600 mr-2 text-base"></i> Edit Transaksi (${trx.desc})`;
@@ -509,6 +554,7 @@
 
         function cancelEdit() {
             document.getElementById('transactionForm').reset();
+            selectCategory('Pemasukan Utama');
             document.getElementById('editIndex').value = "";
             document.getElementById('formTitle').innerHTML = `<i class="fa-solid fa-circle-plus text-indigo-600 mr-2 text-base"></i> Tambah Transaksi Baru`;
             document.getElementById('submitBtn').innerHTML = `<i class="fa-solid fa-floppy-disk mr-2"></i> Simpan Transaksi`;
@@ -522,7 +568,6 @@
             }
         }
 
-        // Konfirmasi Reset Berlapis (Multi-step confirmation)
         function confirmResetData() {
             let step1 = confirm("⚠️ PERINGATAN: Anda akan menghapus seluruh data catatan keuangan Anda. Yakin ingin melanjutkan?");
             if (step1) {
@@ -537,7 +582,6 @@
             }
         }
 
-        // Fitur Download PDF / Cetak Rekening Koran
         function exportToPDF() {
             let printWindow = window.open('', '', 'height=600,width=800');
             let htmlContent = `
@@ -603,6 +647,7 @@
             document.getElementById('sideHustleModal').classList.add('hidden');
         }
 
+        renderCustomDropdown();
         updateUI();
     </script>
 </body>
