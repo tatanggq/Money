@@ -209,7 +209,7 @@
         let transactions = JSON.parse(localStorage.getItem('ar_smart_v8_transactions')) || [
             { desc: 'Gaji Bulanan', amount: 2850000, category: 'Pemasukan Utama' },
             { desc: 'Narik inDrive Sampingan', amount: 500000, category: 'Pemasukan Sampingan' },
-            { desc: 'Cicilan Motor / Utang', amount: 997500, category: 'Cicilan / Utang' },
+            { desc: 'Cicilan / Utang', amount: 997500, category: 'Cicilan / Utang' },
             { desc: 'Makan Sehari-hari', amount: 900000, category: 'Makan' },
             { desc: 'Bensin & Transport', amount: 382500, category: 'Transport' },
             { desc: 'Tabungan Darurat', amount: 285000, category: 'Dana Darurat' }
@@ -217,6 +217,19 @@
 
         let expenseChartInstance = null;
         let barChartInstance = null;
+
+        // Peta Warna Universal yang Konsisten (Chart, Badge Riwayat, dan Indikator Form)
+        const categoryStyles = {
+            'Pemasukan Utama': { bg: 'bg-emerald-100', text: 'text-emerald-700', hex: '#10b981' },
+            'Pemasukan Sampingan': { bg: 'bg-teal-100', text: 'text-teal-700', hex: '#14b8a6' },
+            'Cicilan / Utang': { bg: 'bg-rose-100', text: 'text-rose-700', hex: '#f43f5e' },
+            'Kebutuhan / Kos': { bg: 'bg-blue-100', text: 'text-blue-700', hex: '#3b82f6' },
+            'Makan': { bg: 'bg-amber-100', text: 'text-amber-700', hex: '#f59e0b' },
+            'Transport': { bg: 'bg-emerald-100', text: 'text-emerald-700', hex: '#10b981' }, // Selaras dengan warna donut chart Transport
+            'Jajan / Keinginan': { bg: 'bg-purple-100', text: 'text-purple-700', hex: '#a855f7' },
+            'Dana Darurat': { bg: 'bg-teal-100', text: 'text-teal-700', hex: '#14b8a6' },
+            'Upgrade Skill': { bg: 'bg-indigo-100', text: 'text-indigo-700', hex: '#6366f1' }
+        };
 
         const centerTextPlugin = {
             id: 'centerText',
@@ -288,12 +301,9 @@
                 const item = document.createElement('div');
                 item.className = 'flex justify-between items-center p-3.5 bg-slate-50 rounded-xl border border-slate-100 text-sm hover:bg-slate-100/50 transition';
                 
-                let badgeColor = 'bg-blue-100 text-blue-700';
-                if(trx.category === 'Pemasukan Utama') badgeColor = 'bg-emerald-100 text-emerald-700';
-                if(trx.category === 'Pemasukan Sampingan') badgeColor = 'bg-teal-100 text-teal-700';
-                if(trx.category === 'Cicilan / Utang') badgeColor = 'bg-rose-100 text-rose-700';
-                if(trx.category === 'Makan' || trx.category === 'Transport') badgeColor = 'bg-amber-100 text-amber-700';
-                if(trx.category === 'Jajan / Keinginan') badgeColor = 'bg-purple-100 text-purple-700';
+                // Ambil warna badge konsisten dari peta kategori
+                let style = categoryStyles[trx.category] || { bg: 'bg-blue-100', text: 'text-blue-700' };
+                let badgeColor = `${style.bg} ${style.text}`;
 
                 item.innerHTML = `
                     <div class="space-y-1">
@@ -341,19 +351,15 @@
             // Logika Perubahan Warna Kotak Saldo Dinamis
             balanceCard.className = "p-5 rounded-2xl shadow-md transition-all duration-300 text-white ";
             if (net < 0) {
-                // Merah jika minus
                 balanceCard.classList.add("bg-gradient-to-r", "from-rose-500", "to-red-600");
                 balanceTitle.innerText = "Sisa Saldo (MINUS)";
             } else if (targetSideHustle > 0) {
-                // Jingga/Oranye jika riskan / struktur belum sehat / warning aktif
                 balanceCard.classList.add("bg-gradient-to-r", "from-amber-500", "to-orange-600");
                 balanceTitle.innerText = "Sisa Saldo (Riskan / Perlu Warning)";
             } else if (totalIncome > 0 && totalExpense === 0) {
-                // Biru muda jika kondisi normal awal / baru ada pemasukan
                 balanceCard.classList.add("bg-gradient-to-r", "from-sky-400", "to-blue-500");
                 balanceTitle.innerText = "Sisa Saldo (Normal)";
             } else {
-                // Hijau jika sehat & terkendali
                 balanceCard.classList.add("bg-gradient-to-r", "from-emerald-500", "to-teal-600");
                 balanceTitle.innerText = "Sisa Saldo / Bersih (Sehat)";
             }
@@ -382,16 +388,6 @@
             const ctxExpense = document.getElementById('expenseChart').getContext('2d');
             if (expenseChartInstance) expenseChartInstance.destroy();
 
-            let colorsMap = {
-                'Cicilan / Utang': '#f43f5e',
-                'Kebutuhan / Kos': '#3b82f6',
-                'Makan': '#f59e0b',
-                'Transport': '#10b981',
-                'Jajan / Keinginan': '#a855f7',
-                'Dana Darurat': '#14b8a6',
-                'Upgrade Skill': '#6366f1'
-            };
-
             let activeLabels = [];
             let activeData = [];
             let activeColors = [];
@@ -402,7 +398,7 @@
                     let percent = totalExp > 0 ? ((val / totalExp) * 100).toFixed(1) : 0;
                     activeLabels.push(`${cat} (${percent}%)`);
                     activeData.push(val);
-                    activeColors.push(colorsMap[cat]);
+                    activeColors.push(categoryStyles[cat] ? categoryStyles[cat].hex : '#94a3b8');
                 }
             }
 
