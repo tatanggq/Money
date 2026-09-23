@@ -281,36 +281,52 @@
 
     <!-- Script Logika, PWA & Service Worker -->
     <script>
+        // 0. Variabel Global Utama (Ditempatkan di atas agar terhindar dari ReferenceError)
+        const categoryStyles = {
+            'Pemasukan Utama': { bg: 'bg-emerald-100', text: 'text-emerald-700', hex: '#10b981' },
+            'Pemasukan Sampingan': { bg: 'bg-teal-100', text: 'text-teal-700', hex: '#14b8a6' },
+            'Cicilan / Utang': { bg: 'bg-rose-100', text: 'text-rose-700', hex: '#f43f5e' },
+            'Kebutuhan / Kos': { bg: 'bg-blue-100', text: 'text-blue-700', hex: '#3b82f6' },
+            'Makan': { bg: 'bg-amber-100', text: 'text-amber-700', hex: '#f59e0b' },
+            'Operasional': { bg: 'bg-indigo-100', text: 'text-indigo-700', hex: '#6366f1' },
+            'Jajan / Keinginan': { bg: 'bg-purple-100', text: 'text-purple-700', hex: '#a855f7' },
+            'Dana Darurat': { bg: 'bg-teal-100', text: 'text-teal-700', hex: '#14b8a6' }
+        };
+
+        const categoriesList = [
+            'Pemasukan Utama',
+            'Pemasukan Sampingan',
+            'Cicilan / Utang',
+            'Kebutuhan / Kos',
+            'Makan',
+            'Operasional',
+            'Jajan / Keinginan',
+            'Dana Darurat'
+        ];
+
+        let currentPhone = localStorage.getItem('ar_active_phone') || '';
+        let generatedOtp = '';
+        let transactions = [];
+
         // 1. Pendaftaran Service Worker Sederhana
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 const swCode = `
-                    self.addEventListener('install', (e) => {
-                        self.skipWaiting();
-                    });
-                    self.addEventListener('activate', (e) => {
-                        e.waitUntil(clients.claim());
-                    });
+                    self.addEventListener('install', (e) => { self.skipWaiting(); });
+                    self.addEventListener('activate', (e) => { e.waitUntil(clients.claim()); });
                     self.addEventListener('fetch', (e) => {
                         e.respondWith(
-                            caches.match(e.request).then((response) => {
-                                return response || fetch(e.request);
-                            }).catch(() => {
-                                return fetch(e.request);
-                            })
+                            caches.match(e.request).then((res) => { return res || fetch(e.request); }).catch(() => { return fetch(e.request); })
                         );
                     });
                 `;
                 const blobSW = new Blob([swCode], { type: 'text/javascript' });
                 const swUrl = URL.createObjectURL(blobSW);
-                
-                navigator.serviceWorker.register(swUrl)
-                    .then(() => console.log('Service Worker terdaftar dengan sukses!'))
-                    .catch((err) => console.log('Gagal mendaftarkan Service Worker:', err));
+                navigator.serviceWorker.register(swUrl).catch(() => {});
             });
         }
 
-        // 2. Logika Tombol Install PWA Asli
+        // 2. PWA Install Prompt
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -325,7 +341,6 @@
         window.addEventListener('appinstalled', () => {
             document.getElementById('installPwaBtn').classList.add('hidden');
             deferredPrompt = null;
-            alert('Aplikasi PWA berhasil diinstal di perangkat Anda!');
         });
 
         function installPWA() {
@@ -338,15 +353,11 @@
                     deferredPrompt = null;
                 });
             } else {
-                alert('Aplikasi sudah siap! Jika tombol tidak merespons, buka menu titik tiga (...) di sudut kanan atas browser Chrome Anda, lalu pilih "Install aplikasi" atau "Tambahkan ke Layar Utama".');
+                alert('PWA siap dipasang! Jika tombol tidak merespons, buka menu titik tiga (...) di sudut kanan atas browser Chrome Anda, lalu pilih "Install aplikasi" atau "Tambahkan ke Layar Utama".');
             }
         }
 
         // --- SISTEM LOGIN & PEMULIHAN DATA LAMA ---
-        let currentPhone = localStorage.getItem('ar_active_phone') || '';
-        let generatedOtp = '';
-        let transactions = [];
-
         function checkAuth() {
             if (!currentPhone) {
                 document.getElementById('authModal').classList.remove('hidden');
@@ -380,7 +391,6 @@
                 document.getElementById('authModal').classList.add('hidden');
                 document.getElementById('userPhoneLabel').innerText = `+62 ${currentPhone}`;
                 
-                // Migrasi otomatis data lama jika tersimpan di key umum
                 const oldDataKey = 'ar_smart_v8_transactions';
                 const userKey = `ar_smart_v8_transactions_${currentPhone}`;
                 let oldData = localStorage.getItem(oldDataKey);
@@ -397,7 +407,6 @@
             }
         }
 
-        // Fungsi Tombol Darurat untuk Memulihkan Data Lama yang Tertimpa
         function recoverOldData() {
             let phoneInput = document.getElementById('inputPhone').value.trim();
             if (phoneInput.length < 9) {
@@ -405,7 +414,6 @@
                 if (!phoneInput) return;
             }
 
-            // Cari berbagai kemungkinan nama key lama di localStorage
             let savedOldData = localStorage.getItem('ar_smart_v8_transactions') || localStorage.getItem('ar_smart_transactions');
             
             if (savedOldData) {
@@ -475,28 +483,6 @@
 
         let expenseChartInstance = null;
         let barChartInstance = null;
-
-        const categoryStyles = {
-            'Pemasukan Utama': { bg: 'bg-emerald-100', text: 'text-emerald-700', hex: '#10b981' },
-            'Pemasukan Sampingan': { bg: 'bg-teal-100', text: 'text-teal-700', hex: '#14b8a6' },
-            'Cicilan / Utang': { bg: 'bg-rose-100', text: 'text-rose-700', hex: '#f43f5e' },
-            'Kebutuhan / Kos': { bg: 'bg-blue-100', text: 'text-blue-700', hex: '#3b82f6' },
-            'Makan': { bg: 'bg-amber-100', text: 'text-amber-700', hex: '#f59e0b' },
-            'Operasional': { bg: 'bg-indigo-100', text: 'text-indigo-700', hex: '#6366f1' },
-            'Jajan / Keinginan': { bg: 'bg-purple-100', text: 'text-purple-700', hex: '#a855f7' },
-            'Dana Darurat': { bg: 'bg-teal-100', text: 'text-teal-700', hex: '#14b8a6' }
-        };
-
-        const categoriesList = [
-            'Pemasukan Utama',
-            'Pemasukan Sampingan',
-            'Cicilan / Utang',
-            'Kebutuhan / Kos',
-            'Makan',
-            'Operasional',
-            'Jajan / Keinginan',
-            'Dana Darurat'
-        ];
 
         function renderCustomDropdown() {
             const listEl = document.getElementById('customDropdownList');
