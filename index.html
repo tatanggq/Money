@@ -604,18 +604,51 @@
         function exportToPDF() {
             let printWindow = window.open('', '', 'height=700,width=950');
             
-            // Menyortir data secara kronologis (dari tanggal terlama ke terbaru) 
-            // Sekaligus menempatkan transaksi pemasukan di awal jika tanggalnya sama agar saldo awal tidak minus
+            // Fungsi pembantu untuk memberikan bobot waktu kronologis harian secara akurat
+            // Agar Sarapan/Pagi selalu di atas Naspad (Siang/Sore) pada tanggal yang sama.
+            function getTimeWeight(trx) {
+                let descLower = trx.desc.toLowerCase();
+                let cat = trx.category;
+
+                // 1. Pemasukan (Gaji) selalu di urutan pertama (pagi buta)
+                if (cat.includes('Pemasukan')) return 1;
+
+                // 2. Sarapan / Kopi / Pagi
+                if (descLower.includes('sarapan') || descLower.includes('kopi') || descLower.includes('pagi') || descLower.includes('teh')) return 2;
+
+                // 3. Bekal / Transport pagi
+                if (descLower.includes('bekal')) return 3;
+
+                // 4. Makan Siang / Naspad / Umum lainnya
+                if (descLower.includes('naspad') || descLower.includes('makan siang') || cat === 'Makan') return 4;
+
+                // 5. Kebutuhan / Kos / Tagihan siang
+                if (cat === 'Kebutuhan / Kos') return 5;
+
+                // 6. Operasional / Bensin / WiFii
+                if (cat === 'Operasional') return 6;
+
+                // 7. Belanja Sore / Borma / Keinginan
+                if (descLower.includes('borma') || cat === 'Jajan / Keinginan') return 7;
+
+                // 8. Cicilan / Utang / Malam
+                if (cat === 'Cicilan / Utang' || descLower.includes('utang') || descLower.includes('paylater')) return 8;
+
+                // Default urutan tengah
+                return 5;
+            }
+
             let chronologicalTransactions = [...transactions].sort((a, b) => {
                 let dateA = new Date(a.date || '2026-01-01');
                 let dateB = new Date(b.date || '2026-01-01');
+                
+                // Jika tanggal berbeda, urutkan murni berdasarkan tanggal terlama ke terbaru
                 if (dateA - dateB !== 0) {
                     return dateA - dateB;
                 }
-                // Jika tanggal sama, dahulukan Pemasukan agar saldo selalu positif di awal hari
-                let isIncA = a.category.includes('Pemasukan') ? -1 : 1;
-                let isIncB = b.category.includes('Pemasukan') ? -1 : 1;
-                return isIncA - isIncB;
+
+                // Jika tanggal SAMA, urutkan berdasarkan bobot waktu harian (Sarapan -> Naspad -> Belanja -> Cicilan)
+                return getTimeWeight(a) - getTimeWeight(b);
             });
 
             let runningBalance = 0;
